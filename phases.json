@@ -1,0 +1,42 @@
+[
+  {
+    "phase": 0,
+    "name": "Calibration",
+    "description": "Fresh builds from master methodology, scored with Tier 0 + Tier 1 discrete tools. Identify gaps the methodology doesn't address.",
+    "dimensions_active": ["CD", "DA", "SV", "ST", "CQ-S", "TS"],
+    "status": "pending",
+    "trials": []
+  },
+  {
+    "phase": 1,
+    "name": "Test Execution",
+    "description": "Tests must actually pass. Coverage must meet thresholds. Methodology refined from Phase 0 findings.",
+    "dimensions_active": ["TA-U", "TA-I"],
+    "status": "pending",
+    "trials": []
+  },
+  {
+    "phase": 2,
+    "name": "Container Verification",
+    "description": "Docker builds succeed. Compose starts. Healthchecks respond. Seed runs. Static security scans clean.",
+    "dimensions_active": ["II", "SE-S"],
+    "status": "pending",
+    "trials": []
+  },
+  {
+    "phase": 3,
+    "name": "Runtime Validation",
+    "description": "Running containers serve traffic. Performance under load. Accessibility audits. Active security scanning.",
+    "dimensions_active": ["PF-R", "PF-L", "AX", "SE-R"],
+    "status": "pending",
+    "trials": []
+  },
+  {
+    "phase": 4,
+    "name": "Edge Case & Completeness",
+    "description": "Business logic edge cases traced from spec to test to branch coverage. Feature completeness verified.",
+    "dimensions_active": ["EC", "FC", "UI"],
+    "status": "pending",
+    "trials": []
+  }
+]

@@ -1,0 +1,87 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# PUBLISHING POLICY ENFORCEMENT
+# This repo is PUBLIC. These rules enforce ~/projects/PUBLISHING_POLICY.md.
+# Everything not ignored here is visible to the world.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── PRIVATE: Methodology Documents (Policy: PRIVATE > Methodology) ──────
+METHODOLOGY.md
+REVISED_METHODOLOGY.md
+METHODOLOGY_ADDENDUM_*.md
+
+# ── PRIVATE: Scoring & Evaluation (Policy: PRIVATE > Scoring) ───────────
+SCORING_DIMENSIONS.md
+EXPERIMENT_DESIGN.md
+TRIAL_PROTOCOL.md
+scorer/
+trial*/DISCRETE_SCORES.json
+trial*/SCORE_REPORT.md
+trial*/RED_TEAM_REPORT.md
+trial*/SCORE_RECONCILIATION.md
+trial*/BUILD_REPORT.md
+trial*/CALIBRATION_DELTA.md
+trial*/NEW_FAILURE_MODES.md
+trial*/REVISED_METHODOLOGY.md
+trial*/SECURITY_SCAN.json
+
+# ── PRIVATE: Failure Mode Details (Policy: PRIVATE > Failure Modes) ─────
+# The failure mode registry and detection rules are embedded in METHODOLOGY.md
+# and scorer/ — both already ignored above.
+
+# ── PRIVATE: Process & Protocol (Policy: PRIVATE > Process) ─────────────
+# TRIAL_PROTOCOL.md already ignored above
+# scorer/ already ignored above (contains verification/scoring logic)
+
+# ── PRIVATE: Session Data (Policy: PRIVATE > Session Data) ──────────────
+.claude/
+
+# ── PRIVATE: Configuration & Secrets ────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── PUBLISH WITH REDACTION: phases.json ─────────────────────────────────
+# phases.json is tracked but must NOT contain:
+#   - requiredArtifacts
+#   - newScoringDimensions
+#   - verificationMechanisms
+# (Current phases.json only has: phase, name, description, dimensions_active, status, trials)
+# dimensions_active lists codes only — no rubric definitions. Acceptable per policy.
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STANDARD IGNORES (not policy-related)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Docker volumes
+docker-data/
+postgres-data/
+
+# Coverage output
+coverage/
+.nyc_output/
+
+# Build output
+dist/
+.next/
+.turbo/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Trial build artifacts (large, reproducible)
+trial*/*/node_modules/
+trial*/*/dist/
+trial*/*/coverage/
+trial*/*/.next/
+trial*/*/.turbo/
