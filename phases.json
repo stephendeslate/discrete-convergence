@@ -173,6 +173,43 @@
           "TX": {"min": 1, "ae": 10, "em": 1, "fd": 1},
           "UI": {"min": 6, "ae": 7, "em": 6, "fd": 7}
         }
+      },
+      {
+        "trial": 6,
+        "date": "2026-03-24",
+        "all_dimensions_pass": false,
+        "new_failure_mode_count": 2,
+        "clean": false,
+        "min_score": 0,
+        "avg_score": 5.71,
+        "phase_scored": 4,
+        "notes": "Methodology v0.6-dc. Gates 1-3 fully effective: BV/LT/TS/TX all 1→10, DB 6→10. Gate 4 (ST) REGRESSED 2→1 due to VERIFY tag naming mismatch — agents added human-readable VERIFY tags that don't match TRACED IDs. Phase 0 blockers: 5/14 fail (ST=1, SV=7, SE=7, SE-S=7, TE=7).",
+        "scores": {
+          "AX": {"min": 2, "ae": 2, "em": 2, "fd": 2},
+          "BV": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "CD": {"min": 9, "ae": 9, "em": 9, "fd": 9},
+          "CQ-S": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "DA": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "DB": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "EC": {"min": 0, "ae": 5, "em": 0, "fd": 2},
+          "FC": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "FI": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "II": {"min": 1, "ae": 1, "em": 3, "fd": 1},
+          "LT": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "PF-L": {"min": 1, "ae": 1, "em": 6, "fd": 1},
+          "PF-R": {"min": 0, "ae": 1, "em": 0, "fd": 1},
+          "SE": {"min": 7, "ae": 10, "em": 7, "fd": 7},
+          "SE-R": {"min": 1, "ae": 1, "em": 5, "fd": 1},
+          "SE-S": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "ST": {"min": 1, "ae": 1, "em": 1, "fd": 9},
+          "SV": {"min": 7, "ae": 7, "em": 7, "fd": 8},
+          "TA-I": {"min": 0, "ae": 0, "em": 3, "fd": 3},
+          "TA-U": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "TE": {"min": 7, "ae": 7, "em": 10, "fd": 10},
+          "TS": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "TX": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "UI": {"min": 6, "ae": 7, "em": 6, "fd": 7}
+        }
       }
     ]
   },
