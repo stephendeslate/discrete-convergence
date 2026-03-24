@@ -11,6 +11,36 @@
         "status": "fail",
         "new_failure_mode_count": 6,
         "avg_score": 4.67
+      },
+      {
+        "trial": 1,
+        "date": "2026-03-24",
+        "status": "pass",
+        "new_failure_mode_count": 3,
+        "avg_score": 8.83
+      },
+      {
+        "trial": 2,
+        "date": "2026-03-24",
+        "status": "fail",
+        "new_failure_mode_count": 1,
+        "avg_score": 8.50
+      },
+      {
+        "trial": 3,
+        "date": "2026-03-24",
+        "status": "fail",
+        "new_failure_mode_count": 0,
+        "avg_score": 5.67,
+        "notes": "First trial scored with all 24 Phase 4 dimensions. 14 scorer bugs fixed before scoring."
+      },
+      {
+        "trial": 4,
+        "date": "2026-03-24",
+        "status": "fail",
+        "new_failure_mode_count": 0,
+        "avg_score": 5.29,
+        "notes": "Re-scored after 3 CD scorer bug fixes. 7/14 Phase 0 dimensions pass."
       }
     ]
   },
