@@ -4,43 +4,175 @@
     "name": "Calibration",
     "description": "Fresh builds from master methodology scored with automated tools. Identify gaps the methodology doesn't address.",
     "status": "active",
+    "dimensions_active": ["CD", "DA", "SV", "ST", "CQ-S", "TS", "FI", "TE", "SE", "BV", "DB", "TX", "LT", "SE-S"],
+    "convergence": {
+      "required_consecutive_clean": 2,
+      "consecutive_clean_count": 0
+    },
     "trials": [
       {
         "trial": 0,
         "date": "2026-03-24",
-        "status": "fail",
+        "all_dimensions_pass": false,
         "new_failure_mode_count": 6,
-        "avg_score": 4.67
+        "clean": false,
+        "min_score": 1,
+        "avg_score": 4.67,
+        "scores": {
+          "CD": {"min": 8, "ae": 8, "em": 8, "fd": 8},
+          "CQ-S": {"min": 4, "ae": 4, "em": 4, "fd": 4},
+          "DA": {"min": 5, "ae": 5, "em": 5, "fd": 5},
+          "ST": {"min": 1, "ae": 1, "em": 1, "fd": 2},
+          "SV": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "TS": {"min": 1, "ae": 1, "em": 1, "fd": 1}
+        }
       },
       {
         "trial": 1,
         "date": "2026-03-24",
-        "status": "pass",
+        "all_dimensions_pass": true,
         "new_failure_mode_count": 3,
-        "avg_score": 8.83
+        "clean": false,
+        "min_score": 8,
+        "avg_score": 8.83,
+        "scores": {
+          "CD": {"min": 8, "ae": 10, "em": 10, "fd": 8},
+          "CQ-S": {"min": 8, "ae": 8, "em": 8, "fd": 8},
+          "DA": {"min": 8, "ae": 8, "em": 8, "fd": 8},
+          "ST": {"min": 9, "ae": 9, "em": 10, "fd": 10},
+          "SV": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "TS": {"min": 10, "ae": 10, "em": 10, "fd": 10}
+        }
       },
       {
         "trial": 2,
         "date": "2026-03-24",
-        "status": "fail",
+        "all_dimensions_pass": false,
         "new_failure_mode_count": 1,
-        "avg_score": 8.50
+        "clean": false,
+        "min_score": 6,
+        "avg_score": 8.50,
+        "scores": {
+          "CD": {"min": 6, "ae": 10, "em": 8, "fd": 6},
+          "CQ-S": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "DA": {"min": 8, "ae": 8, "em": 8, "fd": 8},
+          "ST": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "SV": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "TS": {"min": 10, "ae": 10, "em": 10, "fd": 10}
+        }
       },
       {
         "trial": 3,
         "date": "2026-03-24",
-        "status": "fail",
+        "all_dimensions_pass": false,
         "new_failure_mode_count": 0,
+        "clean": false,
+        "min_score": 1,
         "avg_score": 5.67,
-        "notes": "First trial scored with all 24 Phase 4 dimensions. 14 scorer bugs fixed before scoring."
+        "scorer_version": "post-audit (14 bugs fixed)",
+        "phase_scored": 4,
+        "notes": "First trial scored with all 24 Phase 4 dimensions. 14 scorer bugs fixed before scoring.",
+        "scores": {
+          "AX": {"min": 2, "ae": 2, "em": 2, "fd": 2},
+          "BV": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "CD": {"min": 6, "ae": 8, "em": 6, "fd": 7},
+          "CQ-S": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "DA": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "DB": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "EC": {"min": 3, "ae": 3, "em": 5, "fd": 3},
+          "FC": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "FI": {"min": 2, "ae": 7, "em": 2, "fd": 7},
+          "II": {"min": 1, "ae": 2, "em": 1, "fd": 1},
+          "LT": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "PF-L": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "PF-R": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "SE": {"min": 2, "ae": 4, "em": 2, "fd": 2},
+          "SE-R": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "SE-S": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "ST": {"min": 9, "ae": 9, "em": 9, "fd": 9},
+          "SV": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "TA-I": {"min": 7, "ae": 10, "em": 7, "fd": 7},
+          "TA-U": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "TE": {"min": 7, "ae": 10, "em": 7, "fd": 10},
+          "TS": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "TX": {"min": 2, "ae": 2, "em": 2, "fd": 2},
+          "UI": {"min": 7, "ae": 7, "em": 7, "fd": 7}
+        }
       },
       {
         "trial": 4,
         "date": "2026-03-24",
-        "status": "fail",
+        "all_dimensions_pass": false,
         "new_failure_mode_count": 0,
+        "clean": false,
+        "min_score": 1,
         "avg_score": 5.29,
-        "notes": "Re-scored after 3 CD scorer bug fixes. 7/14 Phase 0 dimensions pass."
+        "phase_scored": 4,
+        "scorer_version": "post-audit-v2 (CD comment-exclusion + findFirst pattern fix)",
+        "notes": "Builder agents timed out during context window but completed on disk. Re-scored after 3 CD scorer bug fixes. CD 4→9. Phase 0 blockers: SV(7), TS(7), FI(1), TE(7), SE(4), TX(2), SE-S(7).",
+        "scores": {
+          "AX": {"min": 2, "ae": 2, "em": 2, "fd": 2},
+          "BV": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "CD": {"min": 9, "ae": 9, "em": 9, "fd": 9},
+          "CQ-S": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "DA": {"min": 8, "ae": 10, "em": 8, "fd": 10},
+          "DB": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "EC": {"min": 3, "ae": 3, "em": 3, "fd": 3},
+          "FC": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "FI": {"min": 1, "ae": 7, "em": 2, "fd": 1},
+          "II": {"min": 1, "ae": 2, "em": 1, "fd": 1},
+          "LT": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "PF-L": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "PF-R": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "SE": {"min": 4, "ae": 4, "em": 4, "fd": 4},
+          "SE-R": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "SE-S": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "ST": {"min": 8, "ae": 9, "em": 8, "fd": 9},
+          "SV": {"min": 7, "ae": 10, "em": 7, "fd": 10},
+          "TA-I": {"min": 3, "ae": 10, "em": 3, "fd": 10},
+          "TA-U": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "TE": {"min": 7, "ae": 7, "em": 7, "fd": 10},
+          "TS": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "TX": {"min": 2, "ae": 2, "em": 2, "fd": 2},
+          "UI": {"min": 7, "ae": 7, "em": 7, "fd": 7}
+        }
+      },
+      {
+        "trial": 5,
+        "date": "2026-03-24",
+        "all_dimensions_pass": false,
+        "new_failure_mode_count": 0,
+        "clean": false,
+        "min_score": 0,
+        "avg_score": 4.17,
+        "phase_scored": 4,
+        "notes": "Methodology v0.5-dc. AE strong (avg 6.29), EM/FD dragged down by BV(1), LT(1), TS(1), TX(1). Key regressions from T4: BV 10→1, LT 10→1, ST 8→2, DB 10→6. Key improvement: FI 1→10. Phase 0 blockers: 10/14 fail.",
+        "scores": {
+          "AX": {"min": 1, "ae": 2, "em": 1, "fd": 1},
+          "BV": {"min": 1, "ae": 10, "em": 1, "fd": 1},
+          "CD": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "CQ-S": {"min": 9, "ae": 10, "em": 10, "fd": 9},
+          "DA": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "DB": {"min": 6, "ae": 10, "em": 6, "fd": 6},
+          "EC": {"min": 0, "ae": 5, "em": 0, "fd": 2},
+          "FC": {"min": 7, "ae": 7, "em": 7, "fd": 7},
+          "FI": {"min": 10, "ae": 10, "em": 10, "fd": 10},
+          "II": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "LT": {"min": 1, "ae": 10, "em": 1, "fd": 1},
+          "PF-L": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "PF-R": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "SE": {"min": 7, "ae": 10, "em": 7, "fd": 7},
+          "SE-R": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "SE-S": {"min": 7, "ae": 7, "em": 10, "fd": 10},
+          "ST": {"min": 2, "ae": 2, "em": 2, "fd": 10},
+          "SV": {"min": 7, "ae": 7, "em": 7, "fd": 8},
+          "TA-I": {"min": 2, "ae": 2, "em": 3, "fd": 3},
+          "TA-U": {"min": 1, "ae": 1, "em": 1, "fd": 1},
+          "TE": {"min": 7, "ae": 7, "em": 10, "fd": 10},
+          "TS": {"min": 1, "ae": 10, "em": 1, "fd": 1},
+          "TX": {"min": 1, "ae": 10, "em": 1, "fd": 1},
+          "UI": {"min": 6, "ae": 7, "em": 6, "fd": 7}
+        }
       }
     ]
   },
@@ -49,6 +181,7 @@
     "name": "Test Execution",
     "description": "Tests must actually pass. Coverage must meet thresholds.",
     "status": "pending",
+    "dimensions_active": ["TA-U", "TA-I"],
     "trials": []
   },
   {
@@ -56,6 +189,7 @@
     "name": "Container Verification",
     "description": "Docker builds succeed. Compose starts. Healthchecks respond. Seed runs.",
     "status": "pending",
+    "dimensions_active": ["II"],
     "trials": []
   },
   {
@@ -63,6 +197,7 @@
     "name": "Runtime Validation",
     "description": "Running containers serve traffic. Performance under load. Accessibility audits.",
     "status": "pending",
+    "dimensions_active": ["PF-R", "PF-L", "AX", "SE-R", "EC"],
     "trials": []
   },
   {
@@ -70,6 +205,7 @@
     "name": "Edge Case & Completeness",
     "description": "Business logic edge cases traced from spec to test to branch coverage. Feature completeness verified.",
     "status": "pending",
+    "dimensions_active": ["FC", "UI"],
     "trials": []
   }
 ]
