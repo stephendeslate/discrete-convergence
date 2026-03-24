@@ -1,0 +1,8 @@
+{
+  "name": "fleet-dispatch",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  }
+}

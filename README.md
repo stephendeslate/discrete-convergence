@@ -6,7 +6,7 @@
 
 discrete-convergence validates and hardens the Spec-Driven Development (SDD) master methodology against automated, tool-driven quality measurement.
 
-**Phase 1** ([layered-convergence](https://github.com/sjdlabsllc/layered-convergence)) discovered failure modes through LLM-based scoring — three separate Claude sessions producing subjective assessments across 44 trials, 132 builds, 10 layers, and 102 failure modes.
+**Phase 1** ([layered-convergence](https://github.com/stephendeslate/layered-convergence)) discovered failure modes through LLM-based scoring — three separate Claude sessions producing subjective assessments across 44 trials, 132 builds, 10 layers, and 102 failure modes.
 
 **Phase 2** (this project) replaces LLM scoring with discrete tool output. Automated tools measure what LLM scoring estimated. The delta between the two reveals blind spots in the methodology.
 
@@ -25,7 +25,7 @@ Master methodology v1.0           Refines to production standard
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 0 | Calibration | Pending |
+| 0 | Calibration | Active |
 | 1 | Test Execution | Pending |
 | 2 | Container Verification | Pending |
 | 3 | Runtime Validation | Pending |
@@ -33,13 +33,7 @@ Master methodology v1.0           Refines to production standard
 
 ## Scoring
 
-17 dimensions across 4 tiers, organized by infrastructure requirement:
-
-- **Tier 0 (Static):** Source file analysis only — 5 dimensions
-- **Tier 1 (Build):** Requires pnpm install + build — 3 dimensions
-- **Tier 2 (Container):** Requires Docker build + compose — 2 dimensions
-- **Tier 3 (Runtime):** Requires running containers + traffic — 4 dimensions
-- **Hybrid:** Discrete baseline + minimal qualitative review — 3 dimensions
+Scoring uses automated tools — linters, type checkers, test runners, container builds, security scanners, load testers, and accessibility auditors — to produce numeric scores across multiple dimensions. Each dimension maps to a specific tool with a defined pass/fail threshold. Phases activate progressively more dimensions as infrastructure requirements increase.
 
 ## What's Public vs Private
 

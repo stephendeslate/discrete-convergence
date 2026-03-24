@@ -1,0 +1,351 @@
+// TRACED:AE-SCHEMA-001 — Prisma schema for analytics engine
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// TRACED:AE-SCHEMA-002 — Tenant model with tier-based feature gating
+model Tenant {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  name        String   @db.VarChar(255)
+  slug        String   @unique @db.VarChar(100)
+  tier        TenantTier @default(FREE)
+  logoUrl     String?  @db.VarChar(500)
+  primaryColor String? @db.VarChar(7)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  dashboards  Dashboard[]
+  dataSources DataSource[]
+  apiKeys     ApiKey[]
+  auditLogs   AuditLog[]
+
+  @@map("tenants")
+  @@index([tier])
+}
+
+enum TenantTier {
+  FREE       @map("free")
+  PRO        @map("pro")
+  ENTERPRISE @map("enterprise")
+
+  @@map("tenant_tier")
+}
+
+// TRACED:AE-SCHEMA-003 — User model with JWT auth support
+model User {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  name         String   @db.VarChar(255)
+  role         UserRole @default(USER)
+  tenantId     String   @db.VarChar(36)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("users")
+  @@index([tenantId])
+  @@index([email])
+}
+
+enum UserRole {
+  ADMIN  @map("admin")
+  USER   @map("user")
+  VIEWER @map("viewer")
+
+  @@map("user_role")
+}
+
+// TRACED:AE-SCHEMA-004 — Dashboard with lifecycle status
+model Dashboard {
+  id          String          @id @default(uuid()) @db.VarChar(36)
+  title       String          @db.VarChar(255)
+  description String?         @db.VarChar(1000)
+  status      DashboardStatus @default(DRAFT)
+  tenantId    String          @db.VarChar(36)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  widgets     Widget[]
+  embedConfig EmbedConfig?
+
+  @@map("dashboards")
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+}
+
+enum DashboardStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  ARCHIVED  @map("archived")
+
+  @@map("dashboard_status")
+}
+
+// TRACED:AE-SCHEMA-005 — Widget bound to data source with chart type
+model Widget {
+  id           String     @id @default(uuid()) @db.VarChar(36)
+  title        String     @db.VarChar(255)
+  chartType    ChartType
+  config       Json       @default("{}")
+  gridColumn   Int        @default(0)
+  gridRow      Int        @default(0)
+  gridWidth    Int        @default(6)
+  gridHeight   Int        @default(4)
+  dashboardId  String     @db.VarChar(36)
+  dataSourceId String     @db.VarChar(36)
+  tenantId     String     @db.VarChar(36)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  dashboard  Dashboard  @relation(fields: [dashboardId], references: [id])
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@map("widgets")
+  @@index([dashboardId])
+  @@index([dataSourceId])
+  @@index([tenantId])
+}
+
+enum ChartType {
+  LINE    @map("line")
+  BAR     @map("bar")
+  PIE     @map("pie")
+  DONUT   @map("donut")
+  AREA    @map("area")
+  KPI     @map("kpi")
+  TABLE   @map("table")
+  FUNNEL  @map("funnel")
+
+  @@map("chart_type")
+}
+
+// TRACED:AE-SCHEMA-006 — Data source with connector configuration
+model DataSource {
+  id              String           @id @default(uuid()) @db.VarChar(36)
+  name            String           @db.VarChar(255)
+  connectorType   ConnectorType
+  configEncrypted String           @db.Text
+  syncSchedule    SyncSchedule     @default(MANUAL)
+  isActive        Boolean          @default(true)
+  failureCount    Int              @default(0)
+  tenantId        String           @db.VarChar(36)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  widgets       Widget[]
+  fieldMappings FieldMapping[]
+  syncRuns      SyncRun[]
+  dataPoints    DataPoint[]
+
+  @@map("data_sources")
+  @@index([tenantId])
+  @@index([connectorType])
+  @@index([tenantId, isActive])
+}
+
+enum ConnectorType {
+  REST_API   @map("rest_api")
+  POSTGRESQL @map("postgresql")
+  CSV        @map("csv")
+  WEBHOOK    @map("webhook")
+
+  @@map("connector_type")
+}
+
+enum SyncSchedule {
+  MANUAL    @map("manual")
+  HOURLY    @map("hourly")
+  DAILY     @map("daily")
+  WEEKLY    @map("weekly")
+
+  @@map("sync_schedule")
+}
+
+// TRACED:AE-SCHEMA-007 — Field mapping for source-to-internal translation
+model FieldMapping {
+  id           String @id @default(uuid()) @db.VarChar(36)
+  sourceField  String @db.VarChar(255)
+  targetField  String @db.VarChar(255)
+  fieldType    FieldType
+  dataSourceId String @db.VarChar(36)
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@map("field_mappings")
+  @@index([dataSourceId])
+}
+
+enum FieldType {
+  DIMENSION @map("dimension")
+  METRIC    @map("metric")
+
+  @@map("field_type")
+}
+
+// TRACED:AE-SCHEMA-008 — Sync run tracking with status machine
+model SyncRun {
+  id           String        @id @default(uuid()) @db.VarChar(36)
+  status       SyncRunStatus @default(IDLE)
+  rowsIngested Int           @default(0)
+  errorMessage String?       @db.VarChar(2000)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  dataSourceId String        @db.VarChar(36)
+  tenantId     String        @db.VarChar(36)
+  createdAt    DateTime      @default(now())
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@map("sync_runs")
+  @@index([dataSourceId])
+  @@index([tenantId])
+  @@index([status])
+}
+
+enum SyncRunStatus {
+  IDLE      @map("idle")
+  RUNNING   @map("running")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+
+  @@map("sync_run_status")
+}
+
+// TRACED:AE-SCHEMA-009 — Data point with JSONB dimensions and metrics
+model DataPoint {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  dimensions   Json     @default("{}")
+  metrics      Json     @default("{}")
+  sourceHash   String   @db.VarChar(64)
+  timestamp    DateTime
+  dataSourceId String   @db.VarChar(36)
+  tenantId     String   @db.VarChar(36)
+  createdAt    DateTime @default(now())
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@unique([dataSourceId, sourceHash])
+  @@map("data_points")
+  @@index([dataSourceId])
+  @@index([tenantId])
+  @@index([timestamp])
+  @@index([tenantId, dataSourceId])
+}
+
+// TRACED:AE-SCHEMA-010 — Aggregated data for query performance
+model AggregatedDataPoint {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  bucket       DateTime
+  granularity  String   @db.VarChar(20)
+  dimensions   Json     @default("{}")
+  metrics      Json     @default("{}")
+  dataSourceId String   @db.VarChar(36)
+  tenantId     String   @db.VarChar(36)
+  createdAt    DateTime @default(now())
+
+  @@map("aggregated_data_points")
+  @@index([dataSourceId, bucket])
+  @@index([tenantId])
+  @@index([tenantId, dataSourceId])
+}
+
+// TRACED:AE-SCHEMA-011 — Embed configuration per dashboard
+model EmbedConfig {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  allowedOrigins String[] @default([])
+  isEnabled      Boolean  @default(false)
+  themeOverrides Json     @default("{}")
+  dashboardId    String   @unique @db.VarChar(36)
+  tenantId       String   @db.VarChar(36)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id])
+
+  @@map("embed_configs")
+  @@index([tenantId])
+  @@index([dashboardId])
+}
+
+// TRACED:AE-SCHEMA-012 — Query cache with TTL by tenant tier
+model QueryCache {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  cacheKey    String   @unique @db.VarChar(500)
+  result      Json
+  expiresAt   DateTime
+  tenantId    String   @db.VarChar(36)
+  createdAt   DateTime @default(now())
+
+  @@map("query_caches")
+  @@index([tenantId])
+  @@index([expiresAt])
+}
+
+// TRACED:AE-SCHEMA-013 — Dead letter queue for failed ingestion
+model DeadLetterEvent {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  payload      Json
+  errorMessage String   @db.VarChar(2000)
+  dataSourceId String   @db.VarChar(36)
+  tenantId     String   @db.VarChar(36)
+  createdAt    DateTime @default(now())
+
+  @@map("dead_letter_events")
+  @@index([dataSourceId])
+  @@index([tenantId])
+}
+
+// TRACED:AE-SCHEMA-014 — API key with hash and prefix
+model ApiKey {
+  id        String     @id @default(uuid()) @db.VarChar(36)
+  name      String     @db.VarChar(255)
+  prefix    String     @db.VarChar(8)
+  keyHash   String     @db.VarChar(255)
+  keyType   ApiKeyType
+  expiresAt DateTime?
+  tenantId  String     @db.VarChar(36)
+  createdAt DateTime   @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("api_keys")
+  @@index([tenantId])
+  @@index([prefix])
+}
+
+enum ApiKeyType {
+  ADMIN @map("admin")
+  EMBED @map("embed")
+
+  @@map("api_key_type")
+}
+
+// TRACED:AE-SCHEMA-015 — Immutable audit log
+model AuditLog {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  action    String   @db.VarChar(100)
+  entity    String   @db.VarChar(100)
+  entityId  String   @db.VarChar(36)
+  details   Json     @default("{}")
+  userId    String?  @db.VarChar(36)
+  tenantId  String   @db.VarChar(36)
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("audit_logs")
+  @@index([tenantId])
+  @@index([entity, entityId])
+  @@index([tenantId, createdAt])
+}

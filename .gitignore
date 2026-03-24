@@ -15,6 +15,7 @@ EXPERIMENT_DESIGN.md
 TRIAL_PROTOCOL.md
 scorer/
 trial*/DISCRETE_SCORES.json
+trial*/*/DISCRETE_SCORES.json
 trial*/SCORE_REPORT.md
 trial*/RED_TEAM_REPORT.md
 trial*/SCORE_RECONCILIATION.md
@@ -23,6 +24,7 @@ trial*/CALIBRATION_DELTA.md
 trial*/NEW_FAILURE_MODES.md
 trial*/REVISED_METHODOLOGY.md
 trial*/SECURITY_SCAN.json
+trial*/TRIAL_METADATA.json
 
 # ── PRIVATE: Failure Mode Details (Policy: PRIVATE > Failure Modes) ─────
 # The failure mode registry and detection rules are embedded in METHODOLOGY.md
@@ -42,11 +44,11 @@ trial*/SECURITY_SCAN.json
 
 # ── PUBLISH WITH REDACTION: phases.json ─────────────────────────────────
 # phases.json is tracked but must NOT contain:
-#   - requiredArtifacts
-#   - newScoringDimensions
-#   - verificationMechanisms
-# (Current phases.json only has: phase, name, description, dimensions_active, status, trials)
-# dimensions_active lists codes only — no rubric definitions. Acceptable per policy.
+#   - dimensions_active (reveals rubric structure)
+#   - convergence thresholds (numeric criteria)
+#   - per-dimension or per-project score breakdowns
+#   - scorer implementation details
+# Public version contains only: phase, name, description, status, trial pass/fail, avg score
 
 # ═══════════════════════════════════════════════════════════════════════════
 # STANDARD IGNORES (not policy-related)

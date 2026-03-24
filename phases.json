@@ -2,32 +2,36 @@
   {
     "phase": 0,
     "name": "Calibration",
-    "description": "Fresh builds from master methodology, scored with Tier 0 + Tier 1 discrete tools. Identify gaps the methodology doesn't address.",
-    "dimensions_active": ["CD", "DA", "SV", "ST", "CQ-S", "TS"],
-    "status": "pending",
-    "trials": []
+    "description": "Fresh builds from master methodology scored with automated tools. Identify gaps the methodology doesn't address.",
+    "status": "active",
+    "trials": [
+      {
+        "trial": 0,
+        "date": "2026-03-24",
+        "status": "fail",
+        "new_failure_mode_count": 6,
+        "avg_score": 4.67
+      }
+    ]
   },
   {
     "phase": 1,
     "name": "Test Execution",
-    "description": "Tests must actually pass. Coverage must meet thresholds. Methodology refined from Phase 0 findings.",
-    "dimensions_active": ["TA-U", "TA-I"],
+    "description": "Tests must actually pass. Coverage must meet thresholds.",
     "status": "pending",
     "trials": []
   },
   {
     "phase": 2,
     "name": "Container Verification",
-    "description": "Docker builds succeed. Compose starts. Healthchecks respond. Seed runs. Static security scans clean.",
-    "dimensions_active": ["II", "SE-S"],
+    "description": "Docker builds succeed. Compose starts. Healthchecks respond. Seed runs.",
     "status": "pending",
     "trials": []
   },
   {
     "phase": 3,
     "name": "Runtime Validation",
-    "description": "Running containers serve traffic. Performance under load. Accessibility audits. Active security scanning.",
-    "dimensions_active": ["PF-R", "PF-L", "AX", "SE-R"],
+    "description": "Running containers serve traffic. Performance under load. Accessibility audits.",
     "status": "pending",
     "trials": []
   },
@@ -35,7 +39,6 @@
     "phase": 4,
     "name": "Edge Case & Completeness",
     "description": "Business logic edge cases traced from spec to test to branch coverage. Feature completeness verified.",
-    "dimensions_active": ["EC", "FC", "UI"],
     "status": "pending",
     "trials": []
   }

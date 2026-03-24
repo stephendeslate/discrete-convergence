@@ -1,0 +1,374 @@
+// TRACED:FD-SCHEMA-001 through FD-SCHEMA-016
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// TRACED:FD-SCHEMA-001
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  serviceArea String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  users         User[]
+  technicians   Technician[]
+  customers     Customer[]
+  workOrders    WorkOrder[]
+  routes        Route[]
+  invoices      Invoice[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@map("companies")
+}
+
+// TRACED:FD-SCHEMA-002
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole
+  companyId String   @map("company_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  company    Company     @relation(fields: [companyId], references: [id])
+  technician Technician?
+
+  @@index([companyId, email])
+  @@map("users")
+}
+
+// TRACED:FD-SCHEMA-003
+model Technician {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  companyId   String   @map("company_id")
+  skills      String[]
+  latitude    Decimal? @db.Decimal(10, 7)
+  longitude   Decimal? @db.Decimal(10, 7)
+  lastGpsAt   DateTime? @map("last_gps_at")
+  isAvailable Boolean  @default(true) @map("is_available")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user       User        @relation(fields: [userId], references: [id])
+  company    Company     @relation(fields: [companyId], references: [id])
+  workOrders WorkOrder[]
+  routes     Route[]
+  gpsLogs    GpsLog[]
+
+  @@index([companyId])
+  @@index([companyId, isAvailable])
+  @@map("technicians")
+}
+
+// TRACED:FD-SCHEMA-004
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  address   String
+  city      String
+  state     String
+  zip       String
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  companyId String   @map("company_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  company    Company     @relation(fields: [companyId], references: [id])
+  workOrders WorkOrder[]
+
+  @@index([companyId])
+  @@map("customers")
+}
+
+// TRACED:FD-SCHEMA-005
+model WorkOrder {
+  id              String          @id @default(uuid())
+  sequenceNumber  Int             @map("sequence_number")
+  title           String
+  description     String?
+  status          WorkOrderStatus @default(UNASSIGNED)
+  priority        Priority        @default(MEDIUM)
+  scheduledStart  DateTime?       @map("scheduled_start")
+  scheduledEnd    DateTime?       @map("scheduled_end")
+  completedAt     DateTime?       @map("completed_at")
+  notes           String?
+  trackingToken   String?         @unique @map("tracking_token")
+  trackingExpiry  DateTime?       @map("tracking_expiry")
+  companyId       String          @map("company_id")
+  customerId      String?         @map("customer_id")
+  technicianId    String?         @map("technician_id")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  company       Company                @relation(fields: [companyId], references: [id])
+  customer      Customer?              @relation(fields: [customerId], references: [id])
+  technician    Technician?            @relation(fields: [technicianId], references: [id])
+  statusHistory WorkOrderStatusHistory[]
+  routeStops    RouteStop[]
+  photos        JobPhoto[]
+  invoice       Invoice?
+  lineItems     LineItem[]
+
+  @@index([companyId, status])
+  @@index([companyId, technicianId])
+  @@index([trackingToken])
+  @@map("work_orders")
+}
+
+// TRACED:FD-SCHEMA-006
+model WorkOrderStatusHistory {
+  id          String          @id @default(uuid())
+  workOrderId String          @map("work_order_id")
+  fromStatus  WorkOrderStatus? @map("from_status")
+  toStatus    WorkOrderStatus @map("to_status")
+  changedBy   String          @map("changed_by")
+  notes       String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([workOrderId])
+  @@map("work_order_status_history")
+}
+
+// TRACED:FD-SCHEMA-007
+model Route {
+  id            String   @id @default(uuid())
+  technicianId  String   @map("technician_id")
+  companyId     String   @map("company_id")
+  date          DateTime @db.Date
+  totalDistance  Decimal? @map("total_distance") @db.Decimal(10, 2)
+  totalDuration Int?     @map("total_duration")
+  optimizedAt   DateTime? @map("optimized_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  technician Technician  @relation(fields: [technicianId], references: [id])
+  company    Company     @relation(fields: [companyId], references: [id])
+  stops      RouteStop[]
+
+  @@unique([technicianId, date])
+  @@index([companyId])
+  @@map("routes")
+}
+
+// TRACED:FD-SCHEMA-008
+model RouteStop {
+  id          String   @id @default(uuid())
+  routeId     String   @map("route_id")
+  workOrderId String   @map("work_order_id")
+  stopOrder   Int      @map("stop_order")
+  eta         DateTime?
+  legDistance  Decimal? @map("leg_distance") @db.Decimal(10, 2)
+  legDuration Int?     @map("leg_duration")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  route     Route     @relation(fields: [routeId], references: [id])
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([routeId])
+  @@map("route_stops")
+}
+
+// TRACED:FD-SCHEMA-009
+model GpsLog {
+  id           String   @id @default(uuid())
+  technicianId String   @map("technician_id")
+  latitude     Decimal  @db.Decimal(10, 7)
+  longitude    Decimal  @db.Decimal(10, 7)
+  accuracy     Decimal? @db.Decimal(6, 2)
+  speed        Decimal? @db.Decimal(6, 2)
+  heading      Decimal? @db.Decimal(6, 2)
+  recordedAt   DateTime @map("recorded_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  technician Technician @relation(fields: [technicianId], references: [id])
+
+  @@index([technicianId, recordedAt])
+  @@map("gps_logs")
+}
+
+// TRACED:FD-SCHEMA-010
+model JobPhoto {
+  id          String   @id @default(uuid())
+  workOrderId String   @map("work_order_id")
+  url         String
+  caption     String?
+  takenAt     DateTime @map("taken_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([workOrderId])
+  @@map("job_photos")
+}
+
+// TRACED:FD-SCHEMA-011
+model Invoice {
+  id             String        @id @default(uuid())
+  sequenceNumber Int           @map("sequence_number")
+  workOrderId    String        @unique @map("work_order_id")
+  companyId      String        @map("company_id")
+  status         InvoiceStatus @default(DRAFT)
+  subtotal       Decimal       @db.Decimal(10, 2)
+  tax            Decimal       @default(0) @db.Decimal(10, 2)
+  total          Decimal       @db.Decimal(10, 2)
+  sentAt         DateTime?     @map("sent_at")
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  workOrder WorkOrder  @relation(fields: [workOrderId], references: [id])
+  company   Company    @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, status])
+  @@map("invoices")
+}
+
+// TRACED:FD-SCHEMA-012
+model LineItem {
+  id          String       @id @default(uuid())
+  workOrderId String       @map("work_order_id")
+  type        LineItemType
+  description String
+  quantity    Decimal      @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal      @map("unit_price") @db.Decimal(10, 2)
+  total       Decimal      @db.Decimal(10, 2)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([workOrderId])
+  @@map("line_items")
+}
+
+// TRACED:FD-SCHEMA-013
+model Notification {
+  id        String             @id @default(uuid())
+  companyId String             @map("company_id")
+  type      NotificationType
+  channel   NotificationChannel
+  recipient String
+  subject   String
+  body      String
+  status    NotificationStatus @default(PENDING)
+  sentAt    DateTime?          @map("sent_at")
+  createdAt DateTime           @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@map("notifications")
+}
+
+// TRACED:FD-SCHEMA-014
+model AuditLog {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  changes   String?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([companyId, entity, entityId])
+  @@map("audit_logs")
+}
+
+// TRACED:FD-SCHEMA-015
+enum UserRole {
+  ADMIN       @map("admin")
+  DISPATCHER  @map("dispatcher")
+  TECHNICIAN  @map("technician")
+  CUSTOMER    @map("customer")
+
+  @@map("user_role")
+}
+
+enum WorkOrderStatus {
+  UNASSIGNED   @map("unassigned")
+  ASSIGNED     @map("assigned")
+  EN_ROUTE     @map("en_route")
+  ON_SITE      @map("on_site")
+  IN_PROGRESS  @map("in_progress")
+  COMPLETED    @map("completed")
+  INVOICED     @map("invoiced")
+  PAID         @map("paid")
+  CANCELLED    @map("cancelled")
+
+  @@map("work_order_status")
+}
+
+enum Priority {
+  LOW      @map("low")
+  MEDIUM   @map("medium")
+  HIGH     @map("high")
+  URGENT   @map("urgent")
+
+  @@map("priority")
+}
+
+enum InvoiceStatus {
+  DRAFT  @map("draft")
+  SENT   @map("sent")
+  PAID   @map("paid")
+  VOID   @map("void")
+
+  @@map("invoice_status")
+}
+
+enum LineItemType {
+  LABOR     @map("labor")
+  MATERIAL  @map("material")
+  FLAT_RATE @map("flat_rate")
+  DISCOUNT  @map("discount")
+  TAX       @map("tax")
+
+  @@map("line_item_type")
+}
+
+enum NotificationType {
+  ASSIGNMENT     @map("assignment")
+  EN_ROUTE       @map("en_route")
+  ARRIVAL        @map("arrival")
+  COMPLETION     @map("completion")
+  INVOICE        @map("invoice")
+
+  @@map("notification_type")
+}
+
+enum NotificationChannel {
+  EMAIL @map("email")
+  SMS   @map("sms")
+
+  @@map("notification_channel")
+}
+
+enum NotificationStatus {
+  PENDING @map("pending")
+  SENT    @map("sent")
+  FAILED  @map("failed")
+
+  @@map("notification_status")
+}
+
+// TRACED:FD-SCHEMA-016 — All models use @@map, all enums use @@map + @map on values

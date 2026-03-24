@@ -1,0 +1,308 @@
+// TRACED:EM-SCHEMA-001 — Prisma schema for event management platform
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// TRACED:EM-SCHEMA-002 — Organization (tenant) with subscription tier
+enum OrganizationTier {
+  FREE       @map("free")
+  PRO        @map("pro")
+  ENTERPRISE @map("enterprise")
+
+  @@map("organization_tier")
+}
+
+model Organization {
+  id        String           @id @default(uuid())
+  name      String
+  slug      String           @unique
+  tier      OrganizationTier @default(FREE)
+  branding  Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  users     User[]
+  events    Event[]
+  venues    Venue[]
+  auditLogs AuditLog[]
+
+  @@map("organizations")
+}
+
+// TRACED:EM-SCHEMA-003 — User with role-based access
+enum UserRole {
+  ADMIN     @map("admin")
+  ORGANIZER @map("organizer")
+  ATTENDEE  @map("attendee")
+
+  @@map("user_role")
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  name           String
+  passwordHash   String       @map("password_hash")
+  role           UserRole     @default(ATTENDEE)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  registrations  Registration[]
+  auditLogs      AuditLog[]
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+// TRACED:EM-SCHEMA-004 — Event with lifecycle status machine
+enum EventStatus {
+  DRAFT               @map("draft")
+  PUBLISHED           @map("published")
+  REGISTRATION_OPEN   @map("registration_open")
+  REGISTRATION_CLOSED @map("registration_closed")
+  IN_PROGRESS         @map("in_progress")
+  COMPLETED           @map("completed")
+  ARCHIVED            @map("archived")
+  CANCELLED           @map("cancelled")
+
+  @@map("event_status")
+}
+
+model Event {
+  id             String       @id @default(uuid())
+  title          String
+  slug           String
+  description    String?
+  status         EventStatus  @default(DRAFT)
+  startDate      DateTime     @map("start_date")
+  endDate        DateTime     @map("end_date")
+  timezone       String       @default("UTC")
+  capacity       Int?
+  isPublic       Boolean      @default(true) @map("is_public")
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  venueId        String?      @map("venue_id")
+  venue          Venue?       @relation(fields: [venueId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  sessions       EventSession[]
+  ticketTypes    TicketType[]
+  registrations  Registration[]
+  registrationFields RegistrationField[]
+  waitlistEntries    WaitlistEntry[]
+  notifications      Notification[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, status])
+  @@index([organizationId])
+  @@map("events")
+}
+
+// TRACED:EM-SCHEMA-005 — Event session for multi-track conferences
+model EventSession {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+  track       String?
+  speaker     String?
+  capacity    Int?
+  eventId     String   @map("event_id")
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([eventId])
+  @@map("event_sessions")
+}
+
+// TRACED:EM-SCHEMA-006 — Venue with capacity and address
+model Venue {
+  id             String       @id @default(uuid())
+  name           String
+  address        String?
+  city           String?
+  capacity       Int?
+  isVirtual      Boolean      @default(false) @map("is_virtual")
+  virtualUrl     String?      @map("virtual_url")
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  events         Event[]
+
+  @@index([organizationId])
+  @@map("venues")
+}
+
+// TRACED:EM-SCHEMA-007 — Ticket type with price (cents) and quota
+model TicketType {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  priceInCents  Int            @map("price_in_cents")
+  quota         Int
+  soldCount     Int            @default(0) @map("sold_count")
+  eventId       String         @map("event_id")
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  registrations Registration[]
+
+  @@index([eventId])
+  @@map("ticket_types")
+}
+
+// TRACED:EM-SCHEMA-008 — Registration with status machine
+enum RegistrationStatus {
+  PENDING    @map("pending")
+  CONFIRMED  @map("confirmed")
+  CANCELLED  @map("cancelled")
+  WAITLISTED @map("waitlisted")
+  PROMOTED   @map("promoted")
+  CHECKED_IN @map("checked_in")
+
+  @@map("registration_status")
+}
+
+model Registration {
+  id             String             @id @default(uuid())
+  status         RegistrationStatus @default(PENDING)
+  qrCode         String?            @map("qr_code")
+  userId         String             @map("user_id")
+  user           User               @relation(fields: [userId], references: [id])
+  eventId        String             @map("event_id")
+  event          Event              @relation(fields: [eventId], references: [id])
+  ticketTypeId   String             @map("ticket_type_id")
+  ticketType     TicketType         @relation(fields: [ticketTypeId], references: [id])
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  checkIn        CheckIn?
+  fieldValues    RegistrationFieldValue[]
+
+  @@index([eventId])
+  @@index([userId])
+  @@map("registrations")
+}
+
+// TRACED:EM-SCHEMA-009 — Custom registration form fields
+enum FieldType {
+  TEXT     @map("text")
+  EMAIL    @map("email")
+  PHONE    @map("phone")
+  SELECT   @map("select")
+  CHECKBOX @map("checkbox")
+
+  @@map("field_type")
+}
+
+model RegistrationField {
+  id        String    @id @default(uuid())
+  label     String
+  type      FieldType
+  required  Boolean   @default(false)
+  options   String[]
+  sortOrder Int       @default(0) @map("sort_order")
+  eventId   String    @map("event_id")
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  values    RegistrationFieldValue[]
+
+  @@index([eventId])
+  @@map("registration_fields")
+}
+
+// TRACED:EM-SCHEMA-010 — Registration field values (attendee answers)
+model RegistrationFieldValue {
+  id                  String            @id @default(uuid())
+  value               String
+  registrationId      String            @map("registration_id")
+  registration        Registration      @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  registrationFieldId String            @map("registration_field_id")
+  registrationField   RegistrationField @relation(fields: [registrationFieldId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, registrationFieldId])
+  @@map("registration_field_values")
+}
+
+// TRACED:EM-SCHEMA-011 — Check-in record with timestamp
+model CheckIn {
+  id             String       @id @default(uuid())
+  checkedInAt    DateTime     @default(now()) @map("checked_in_at")
+  checkedInBy    String?      @map("checked_in_by")
+  registrationId String       @unique @map("registration_id")
+  registration   Registration @relation(fields: [registrationId], references: [id])
+
+  @@map("check_ins")
+}
+
+// TRACED:EM-SCHEMA-012 — Waitlist entry with FIFO ordering
+model WaitlistEntry {
+  id           String   @id @default(uuid())
+  position     Int
+  eventId      String   @map("event_id")
+  event        Event    @relation(fields: [eventId], references: [id])
+  userId       String   @map("user_id")
+  ticketTypeId String   @map("ticket_type_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([eventId])
+  @@map("waitlist_entries")
+}
+
+// TRACED:EM-SCHEMA-013 — Notification with template and delivery status
+enum NotificationStatus {
+  QUEUED    @map("queued")
+  SENT      @map("sent")
+  FAILED    @map("failed")
+  DELIVERED @map("delivered")
+
+  @@map("notification_status")
+}
+
+enum NotificationType {
+  CONFIRMATION @map("confirmation")
+  REMINDER     @map("reminder")
+  UPDATE       @map("update")
+  CANCELLATION @map("cancellation")
+
+  @@map("notification_type")
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+  type        NotificationType
+  status      NotificationStatus @default(QUEUED)
+  recipient   String
+  subject     String
+  body        String
+  eventId     String             @map("event_id")
+  event       Event              @relation(fields: [eventId], references: [id])
+  sentAt      DateTime?          @map("sent_at")
+  errorMessage String?           @map("error_message")
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  @@index([eventId])
+  @@map("notifications")
+}
+
+// TRACED:EM-SCHEMA-014 — Immutable audit log
+model AuditLog {
+  id             String       @id @default(uuid())
+  action         String
+  entityType     String       @map("entity_type")
+  entityId       String       @map("entity_id")
+  changes        Json?
+  userId         String       @map("user_id")
+  user           User         @relation(fields: [userId], references: [id])
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId])
+  @@map("audit_logs")
+}
