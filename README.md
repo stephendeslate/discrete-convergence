@@ -1,10 +1,10 @@
 # discrete-convergence
 
-**Phase 2 of the SDD Research Program**
+**Phase 2 of the CED Research Program**
 
 ## What This Is
 
-discrete-convergence validates and hardens the Spec-Driven Development (SDD) master methodology against automated, tool-driven quality measurement.
+discrete-convergence validates and hardens the Convergence Engineering Development (CED) master methodology against automated, tool-driven quality measurement.
 
 **Phase 1** ([layered-convergence](https://github.com/stephendeslate/layered-convergence)) discovered failure modes through LLM-based scoring — three separate Claude sessions producing subjective assessments across 44 trials, 132 builds, 10 layers, and 102 failure modes.
 
@@ -44,10 +44,10 @@ This repository publishes **trial builds** (source code) and **aggregate results
 
 ## Trial Builds
 
-Trial directories contain full-stack applications (NestJS + Next.js + Prisma + PostgreSQL + Turborepo) built from the SDD methodology. Each is an independent build — no code copying between trials.
+Trial directories contain full-stack applications (NestJS + Next.js + Prisma + PostgreSQL + Turborepo) built from the CED methodology. Each is an independent build — no code copying between trials.
 
 ---
 
 **SJD Labs, LLC** — Stephen Deslate
-**Research Program:** Spec-Driven Development (SDD)
+**Research Program:** Convergence Engineering Development (CED)
 **Phase:** 2 (discrete-convergence)
