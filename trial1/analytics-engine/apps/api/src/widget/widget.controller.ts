@@ -14,6 +14,7 @@ import { Response } from 'express';
 import { WidgetService } from './widget.service';
 import { CreateWidgetDto } from './dto/create-widget.dto';
 import { UpdateWidgetDto } from './dto/update-widget.dto';
+import { parsePaginationParams } from '../common/pagination.utils';
 
 @Controller()
 export class WidgetController {
@@ -35,11 +36,8 @@ export class WidgetController {
     @Query('limit') limit?: string,
   ) {
     res.setHeader('Cache-Control', 'public, max-age=60');
-    return this.widgetService.findAll(
-      dashboardId,
-      page ? parseInt(page, 10) : undefined,
-      limit ? parseInt(limit, 10) : undefined,
-    );
+    const params = parsePaginationParams(page, limit);
+    return this.widgetService.findAll(dashboardId, params.page, params.limit);
   }
 
   @Patch('widgets/:id')

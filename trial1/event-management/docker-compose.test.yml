@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+      POSTGRES_DB: event_management_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  test-runner:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://test_user:test_pass@db:5432/event_management_test?connection_limit=5
+      JWT_SECRET: test-jwt-secret
+      JWT_REFRESH_SECRET: test-refresh-secret
+      CORS_ORIGIN: http://localhost:3000
+      NODE_ENV: test
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["pnpm", "turbo", "run", "test"]

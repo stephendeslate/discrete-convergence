@@ -1,7 +1,8 @@
 // TRACED:AE-DATA-003 — Queries against indexed tenantId, status, and composite fields
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, WidgetType } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
-import { clampPagination } from '@analytics-engine/shared';
+import { paginatedQuery } from '../common/paginated-query';
 import { CreateWidgetDto } from './dto/create-widget.dto';
 import { UpdateWidgetDto } from './dto/update-widget.dto';
 
@@ -12,32 +13,20 @@ export class WidgetService {
   async create(dashboardId: string, dto: CreateWidgetDto) {
     return this.prisma.widget.create({
       data: {
-        type: dto.type,
+        type: dto.type as WidgetType,
         title: dto.title,
-        config: dto.config ?? {},
+        config: (dto.config ?? {}) as Prisma.InputJsonValue,
         dashboardId,
       },
     });
   }
 
   async findAll(dashboardId: string, page?: number, limit?: number) {
-    const { page: clampedPage, limit: clampedLimit } = clampPagination(page, limit);
-    const skip = (clampedPage - 1) * clampedLimit;
-    const [items, total] = await Promise.all([
-      this.prisma.widget.findMany({
-        where: { dashboardId },
-        skip,
-        take: clampedLimit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.widget.count({ where: { dashboardId } }),
-    ]);
-    return { items, total, page: clampedPage, limit: clampedLimit };
+    return paginatedQuery(this.prisma.widget, { dashboardId }, page, limit);
   }
 
   async findOne(id: string) {
-    // findFirst: lookup by widget ID with potential soft-delete filter in future
-    const widget = await this.prisma.widget.findFirst({
+    const widget = await this.prisma.widget.findFirst({ // findFirst: lookup by widget ID with potential soft-delete filter in future
       where: { id },
     });
     if (!widget) {
@@ -47,15 +36,17 @@ export class WidgetService {
   }
 
   async update(id: string, dto: UpdateWidgetDto) {
-    await this.findOne(id);
-    return this.prisma.widget.update({
-      where: { id },
-      data: { ...dto },
-    });
+    const existing = await this.findOne(id);
+    const data: Prisma.WidgetUpdateInput = {
+      ...(dto.title !== undefined && { title: dto.title }),
+      ...(dto.type !== undefined && { type: dto.type as WidgetType }),
+      ...(dto.config !== undefined && { config: dto.config as Prisma.InputJsonValue }),
+    };
+    return this.prisma.widget.update({ where: { id: existing.id }, data });
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-    return this.prisma.widget.delete({ where: { id } });
+    const existing = await this.findOne(id);
+    return this.prisma.widget.delete({ where: { id: existing.id } });
   }
 }

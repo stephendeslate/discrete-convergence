@@ -14,6 +14,10 @@ export class MonitoringController {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  private uptimeSeconds(): number {
+    return Math.floor((Date.now() - this.startTime) / 1000);
+  }
+
   @Public()
   @SkipThrottle()
   @Get('health')
@@ -21,7 +25,7 @@ export class MonitoringController {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      uptime: Math.floor((Date.now() - this.startTime) / 1000),
+      uptime: this.uptimeSeconds(),
       version: APP_VERSION,
     };
   }
@@ -31,11 +35,7 @@ export class MonitoringController {
   @Get('health/ready')
   async ready() {
     await this.prisma.$queryRaw`SELECT 1`;
-    return {
-      status: 'ok',
-      database: 'connected',
-      timestamp: new Date().toISOString(),
-    };
+    return { status: 'ok', database: 'connected', timestamp: new Date().toISOString() };
   }
 
   @Get('metrics')
@@ -46,7 +46,7 @@ export class MonitoringController {
       averageResponseTime: this.requestCount > 0
         ? this.totalResponseTime / this.requestCount
         : 0,
-      uptime: Math.floor((Date.now() - this.startTime) / 1000),
+      uptime: this.uptimeSeconds(),
     };
   }
 }

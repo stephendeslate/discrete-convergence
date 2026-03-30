@@ -2,31 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { DataSourceService } from '../src/data-source/data-source.service';
 import { PrismaService } from '../src/common/prisma.service';
+import { createMockPrismaModel } from './helpers/mock-prisma';
 
 describe('DataSourceService', () => {
   let service: DataSourceService;
   let prisma: Record<string, Record<string, jest.Mock>>;
 
   beforeEach(async () => {
-    prisma = {
-      dataSource: {
-        create: jest.fn(),
-        findMany: jest.fn().mockResolvedValue([]),
-        findFirst: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        count: jest.fn().mockResolvedValue(0),
-      },
-      syncRun: {
-        create: jest.fn(),
-      },
-    };
+    prisma = { dataSource: createMockPrismaModel(), syncRun: { create: jest.fn() } };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DataSourceService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [DataSourceService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<DataSourceService>(DataSourceService);

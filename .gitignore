@@ -6,6 +6,7 @@
 
 # ── PRIVATE: Methodology Documents (Policy: PRIVATE > Methodology) ──────
 METHODOLOGY.md
+METHODOLOGY-*.md
 REVISED_METHODOLOGY.md
 METHODOLOGY_ADDENDUM_*.md
 
@@ -27,6 +28,7 @@ trial*/SECURITY_SCAN.json
 trial*/TRIAL_METADATA.json
 
 # ── PRIVATE: Failure Mode Details (Policy: PRIVATE > Failure Modes) ─────
+FAILURE-MODES.md
 # The failure mode registry and detection rules are embedded in METHODOLOGY.md
 # and scorer/ — both already ignored above.
 
@@ -37,6 +39,9 @@ trial*/TRIAL_METADATA.json
 # ── PRIVATE: Session Data (Policy: PRIVATE > Session Data) ──────────────
 .claude/
 **/PROMPT.md
+
+# ── PRIVATE: Reports & Analysis ─────────────────────────────────────────
+report/
 
 # ── PRIVATE: Configuration & Secrets ────────────────────────────────────
 .env
@@ -88,3 +93,6 @@ trial*/*/dist/
 trial*/*/coverage/
 trial*/*/.next/
 trial*/*/.turbo/
+**/*.tsbuildinfo
+**/*.lock
+**/CLAUDE.md

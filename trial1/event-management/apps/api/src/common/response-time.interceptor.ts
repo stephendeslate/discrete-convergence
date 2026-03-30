@@ -1,0 +1,20 @@
+// TRACED:EM-MON-005 — ResponseTimeInterceptor with X-Response-Time header
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { Observable, tap } from 'rxjs';
+import { performance } from 'node:perf_hooks';
+import { Response } from 'express';
+
+@Injectable()
+export class ResponseTimeInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const start = performance.now();
+    const response = context.switchToHttp().getResponse<Response>();
+
+    return next.handle().pipe(
+      tap(() => {
+        const duration = (performance.now() - start).toFixed(2);
+        response.setHeader('X-Response-Time', `${duration}ms`);
+      }),
+    );
+  }
+}

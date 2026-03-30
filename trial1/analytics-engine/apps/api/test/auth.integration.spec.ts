@@ -1,28 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { useTestApp } from './helpers/create-app';
 
 describe('Auth Integration', () => {
-  let app: INestApplication;
-
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
-    await app.init();
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
+  const { getApp } = useTestApp({ validation: true });
 
   describe('POST /auth/register', () => {
     it('should register a new user', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await request(getApp().getHttpServer())
         .post('/auth/register')
         .send({
           email: 'test@example.com',
@@ -37,7 +21,7 @@ describe('Auth Integration', () => {
     });
 
     it('should reject ADMIN role registration', async () => {
-      await request(app.getHttpServer())
+      await request(getApp().getHttpServer())
         .post('/auth/register')
         .send({
           email: 'admin@example.com',
@@ -51,7 +35,7 @@ describe('Auth Integration', () => {
 
   describe('POST /auth/login', () => {
     it('should return 401 for invalid credentials', async () => {
-      await request(app.getHttpServer())
+      await request(getApp().getHttpServer())
         .post('/auth/login')
         .send({
           email: 'nonexistent@example.com',

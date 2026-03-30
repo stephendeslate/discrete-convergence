@@ -51,3 +51,5 @@ See [authentication.md](authentication.md) for auth flow details.
 See [data-model.md](data-model.md) for entity relationships.
 See [api-endpoints.md](api-endpoints.md) for REST API contracts.
 See [monitoring.md](monitoring.md) for observability patterns.
+See [security.md](security.md) for hardening and threat mitigations.
+See [frontend.md](frontend.md) for UI component and accessibility requirements.

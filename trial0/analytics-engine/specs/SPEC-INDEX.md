@@ -45,7 +45,7 @@ Each VERIFY:AE-XXX-NNN references exactly one TRACED:AE-XXX-NNN in the implement
 
 ## Scoring Dimensions
 
-This project targets all 12 SDD methodology dimensions:
+This project targets all 12 CED methodology dimensions:
 1. Spec Quality — 7 documents, each >= 55 lines, cross-references
 2. Contract Fidelity — DTOs, validation, type safety
 3. Layer Isolation — NestJS modules, clean boundaries

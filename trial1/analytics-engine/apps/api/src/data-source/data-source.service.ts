@@ -1,8 +1,9 @@
 // TRACED:AE-DATA-002 — Enum usage with @@map and @map conventions
 // TRACED:AE-DATA-007 — Multi-tenant entity relationships via tenantId foreign key
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { DataSourceType } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
-import { clampPagination } from '@analytics-engine/shared';
+import { paginatedQuery } from '../common/paginated-query';
 import { CreateDataSourceDto } from './dto/create-data-source.dto';
 import { UpdateDataSourceDto } from './dto/update-data-source.dto';
 
@@ -14,31 +15,21 @@ export class DataSourceService {
     return this.prisma.dataSource.create({
       data: {
         name: dto.name,
-        type: dto.type,
+        type: dto.type as DataSourceType,
         tenantId,
       },
     });
   }
 
   async findAll(tenantId: string, page?: number, limit?: number) {
-    const { page: clampedPage, limit: clampedLimit } = clampPagination(page, limit);
-    const skip = (clampedPage - 1) * clampedLimit;
-    const [items, total] = await Promise.all([
-      this.prisma.dataSource.findMany({
-        where: { tenantId },
-        skip,
-        take: clampedLimit,
-        include: { syncRuns: { take: 5, orderBy: { startedAt: 'desc' } } },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.dataSource.count({ where: { tenantId } }),
-    ]);
-    return { items, total, page: clampedPage, limit: clampedLimit };
+    return paginatedQuery(
+      this.prisma.dataSource, { tenantId }, page, limit,
+      { include: { syncRuns: { take: 5, orderBy: { startedAt: 'desc' } } } },
+    );
   }
 
   async findOne(tenantId: string, id: string) {
-    // findFirst: scope by tenantId for multi-tenant data isolation
-    const dataSource = await this.prisma.dataSource.findFirst({
+    const dataSource = await this.prisma.dataSource.findFirst({ // findFirst: scope by tenantId for multi-tenant data isolation
       where: { id, tenantId },
       include: { syncRuns: { take: 10, orderBy: { startedAt: 'desc' } } },
     });
@@ -49,25 +40,22 @@ export class DataSourceService {
   }
 
   async update(tenantId: string, id: string, dto: UpdateDataSourceDto) {
-    await this.findOne(tenantId, id);
-    return this.prisma.dataSource.update({
-      where: { id },
-      data: { ...dto },
-    });
+    const dataSource = await this.findOne(tenantId, id);
+    return this.prisma.dataSource.update({ where: { id: dataSource.id }, data: { ...dto } });
   }
 
   async remove(tenantId: string, id: string) {
-    await this.findOne(tenantId, id);
-    return this.prisma.dataSource.delete({ where: { id } });
+    const dataSource = await this.findOne(tenantId, id);
+    return this.prisma.dataSource.delete({ where: { id: dataSource.id } });
   }
 
   async triggerSync(tenantId: string, id: string) {
-    await this.findOne(tenantId, id);
+    const source = await this.findOne(tenantId, id);
     return this.prisma.syncRun.create({
       data: {
         status: 'RUNNING',
         startedAt: new Date(),
-        dataSourceId: id,
+        dataSourceId: source.id,
       },
     });
   }

@@ -16,6 +16,8 @@ import { Request, Response } from 'express';
 import { DashboardService } from './dashboard.service';
 import { CreateDashboardDto } from './dto/create-dashboard.dto';
 import { UpdateDashboardDto } from './dto/update-dashboard.dto';
+import { getTenantId } from '../common/auth-utils';
+import { parsePaginationParams } from '../common/pagination.utils';
 
 @Controller('dashboards')
 export class DashboardController {
@@ -23,8 +25,7 @@ export class DashboardController {
 
   @Post()
   async create(@Req() req: Request, @Body() dto: CreateDashboardDto) {
-    const user = req.user as { tenantId: string };
-    return this.dashboardService.create(user.tenantId, dto);
+    return this.dashboardService.create(getTenantId(req), dto);
   }
 
   @Get()
@@ -34,19 +35,14 @@ export class DashboardController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const user = req.user as { tenantId: string };
     res.setHeader('Cache-Control', 'private, no-cache');
-    return this.dashboardService.findAll(
-      user.tenantId,
-      page ? parseInt(page, 10) : undefined,
-      limit ? parseInt(limit, 10) : undefined,
-    );
+    const params = parsePaginationParams(page, limit);
+    return this.dashboardService.findAll(getTenantId(req), params.page, params.limit);
   }
 
   @Get(':id')
   async findOne(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { tenantId: string };
-    return this.dashboardService.findOne(user.tenantId, id);
+    return this.dashboardService.findOne(getTenantId(req), id);
   }
 
   @Patch(':id')
@@ -55,13 +51,11 @@ export class DashboardController {
     @Param('id') id: string,
     @Body() dto: UpdateDashboardDto,
   ) {
-    const user = req.user as { tenantId: string };
-    return this.dashboardService.update(user.tenantId, id, dto);
+    return this.dashboardService.update(getTenantId(req), id, dto);
   }
 
   @Delete(':id')
   async remove(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { tenantId: string };
-    return this.dashboardService.remove(user.tenantId, id);
+    return this.dashboardService.remove(getTenantId(req), id);
   }
 }

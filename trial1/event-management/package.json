@@ -1,0 +1,14 @@
+{
+  "name": "event-management",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  }
+}

@@ -15,6 +15,8 @@ import { Request, Response } from 'express';
 import { DataSourceService } from './data-source.service';
 import { CreateDataSourceDto } from './dto/create-data-source.dto';
 import { UpdateDataSourceDto } from './dto/update-data-source.dto';
+import { getTenantId } from '../common/auth-utils';
+import { parsePaginationParams } from '../common/pagination.utils';
 
 @Controller('data-sources')
 export class DataSourceController {
@@ -22,8 +24,7 @@ export class DataSourceController {
 
   @Post()
   async create(@Req() req: Request, @Body() dto: CreateDataSourceDto) {
-    const user = req.user as { tenantId: string };
-    return this.dataSourceService.create(user.tenantId, dto);
+    return this.dataSourceService.create(getTenantId(req), dto);
   }
 
   @Get()
@@ -33,19 +34,14 @@ export class DataSourceController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const user = req.user as { tenantId: string };
     res.setHeader('Cache-Control', 'private, no-cache');
-    return this.dataSourceService.findAll(
-      user.tenantId,
-      page ? parseInt(page, 10) : undefined,
-      limit ? parseInt(limit, 10) : undefined,
-    );
+    const params = parsePaginationParams(page, limit);
+    return this.dataSourceService.findAll(getTenantId(req), params.page, params.limit);
   }
 
   @Get(':id')
   async findOne(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { tenantId: string };
-    return this.dataSourceService.findOne(user.tenantId, id);
+    return this.dataSourceService.findOne(getTenantId(req), id);
   }
 
   @Patch(':id')
@@ -54,19 +50,16 @@ export class DataSourceController {
     @Param('id') id: string,
     @Body() dto: UpdateDataSourceDto,
   ) {
-    const user = req.user as { tenantId: string };
-    return this.dataSourceService.update(user.tenantId, id, dto);
+    return this.dataSourceService.update(getTenantId(req), id, dto);
   }
 
   @Delete(':id')
   async remove(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { tenantId: string };
-    return this.dataSourceService.remove(user.tenantId, id);
+    return this.dataSourceService.remove(getTenantId(req), id);
   }
 
   @Post(':id/sync')
   async triggerSync(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as { tenantId: string };
-    return this.dataSourceService.triggerSync(user.tenantId, id);
+    return this.dataSourceService.triggerSync(getTenantId(req), id);
   }
 }

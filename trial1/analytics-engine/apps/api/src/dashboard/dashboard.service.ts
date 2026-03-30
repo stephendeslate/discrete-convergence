@@ -5,7 +5,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
-import { clampPagination } from '@analytics-engine/shared';
+import { paginatedQuery } from '../common/paginated-query';
 import { CreateDashboardDto } from './dto/create-dashboard.dto';
 import { UpdateDashboardDto } from './dto/update-dashboard.dto';
 
@@ -31,25 +31,15 @@ export class DashboardService {
 
   async findAll(tenantId: string, page?: number, limit?: number) {
     await this.setTenantContext(tenantId);
-    const { page: clampedPage, limit: clampedLimit } = clampPagination(page, limit);
-    const skip = (clampedPage - 1) * clampedLimit;
-    const [items, total] = await Promise.all([
-      this.prisma.dashboard.findMany({
-        where: { tenantId },
-        skip,
-        take: clampedLimit,
-        include: { widgets: true },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.dashboard.count({ where: { tenantId } }),
-    ]);
-    return { items, total, page: clampedPage, limit: clampedLimit };
+    return paginatedQuery(
+      this.prisma.dashboard, { tenantId }, page, limit,
+      { include: { widgets: true } },
+    );
   }
 
   async findOne(tenantId: string, id: string) {
     await this.setTenantContext(tenantId);
-    // findFirst: scope by tenantId for RLS enforcement at application level
-    const dashboard = await this.prisma.dashboard.findFirst({
+    const dashboard = await this.prisma.dashboard.findFirst({ // findFirst: scope by tenantId for RLS enforcement at application level
       where: { id, tenantId },
       include: { widgets: true },
     });
@@ -60,18 +50,12 @@ export class DashboardService {
   }
 
   async update(tenantId: string, id: string, dto: UpdateDashboardDto) {
-    await this.findOne(tenantId, id);
-    return this.prisma.dashboard.update({
-      where: { id },
-      data: { ...dto },
-    });
+    const dashboard = await this.findOne(tenantId, id);
+    return this.prisma.dashboard.update({ where: { id: dashboard.id }, data: { ...dto } });
   }
 
   async remove(tenantId: string, id: string) {
-    await this.findOne(tenantId, id);
-    return this.prisma.dashboard.update({
-      where: { id },
-      data: { status: 'ARCHIVED' },
-    });
+    const dashboard = await this.findOne(tenantId, id);
+    return this.prisma.dashboard.update({ where: { id: dashboard.id }, data: { status: 'ARCHIVED' } });
   }
 }

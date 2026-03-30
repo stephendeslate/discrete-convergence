@@ -2,28 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { DashboardService } from '../src/dashboard/dashboard.service';
 import { PrismaService } from '../src/common/prisma.service';
+import { createMockPrismaModel } from './helpers/mock-prisma';
 
 describe('DashboardService', () => {
   let service: DashboardService;
   let prisma: Record<string, Record<string, jest.Mock>>;
 
   beforeEach(async () => {
-    prisma = {
-      dashboard: {
-        create: jest.fn(),
-        findMany: jest.fn().mockResolvedValue([]),
-        findFirst: jest.fn(),
-        update: jest.fn(),
-        count: jest.fn().mockResolvedValue(0),
-      },
-      $executeRaw: jest.fn(),
-    };
+    prisma = { dashboard: createMockPrismaModel(), $executeRaw: jest.fn() as unknown as Record<string, jest.Mock> };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DashboardService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [DashboardService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<DashboardService>(DashboardService);

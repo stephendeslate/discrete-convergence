@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../common/prisma.service';
 import { BCRYPT_SALT_ROUNDS } from '@analytics-engine/shared';
+import { UserRole } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class AuthService {
       data: {
         email: dto.email,
         passwordHash,
-        role: dto.role,
+        role: dto.role as UserRole,
         tenantId: dto.tenantId,
       },
     });
@@ -27,8 +28,7 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
-    // findFirst: lookup by email which may not be unique across tenants
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findFirst({ // findFirst: lookup by email which may not be unique across tenants
       where: { email },
     });
 
