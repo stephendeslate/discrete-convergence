@@ -36,6 +36,7 @@ trial*/TRIAL_METADATA.json
 
 # ── PRIVATE: Session Data (Policy: PRIVATE > Session Data) ──────────────
 .claude/
+**/PROMPT.md
 
 # ── PRIVATE: Configuration & Secrets ────────────────────────────────────
 .env
