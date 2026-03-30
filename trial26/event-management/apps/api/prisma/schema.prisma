@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN    @map("admin")
+  ORGANIZER @map("organizer")
+  VIEWER   @map("viewer")
+
+  @@map("role")
+}
+
+enum EventStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  CANCELLED @map("cancelled")
+  COMPLETED @map("completed")
+
+  @@map("event_status")
+}
+
+enum TicketType {
+  GENERAL    @map("general")
+  VIP        @map("vip")
+  EARLY_BIRD @map("early_bird")
+
+  @@map("ticket_type")
+}
+
+enum TicketStatus {
+  AVAILABLE @map("available")
+  SOLD      @map("sold")
+  CANCELLED @map("cancelled")
+  REFUNDED  @map("refunded")
+
+  @@map("ticket_status")
+}
+
+enum SessionStatus {
+  DRAFT     @map("draft")
+  CONFIRMED @map("confirmed")
+  CANCELLED @map("cancelled")
+
+  @@map("session_status")
+}
+
+enum SponsorTier {
+  GOLD   @map("gold")
+  SILVER @map("silver")
+  BRONZE @map("bronze")
+
+  @@map("sponsor_tier")
+}
+
+enum AuditAction {
+  CREATE @map("create")
+  UPDATE @map("update")
+  DELETE @map("delete")
+  LOGIN  @map("login")
+
+  @@map("audit_action")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(VIEWER)
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  auditLogs AuditLog[]
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  slug        String      @unique
+  status      EventStatus @default(DRAFT)
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  capacity    Int
+  tenantId    String      @map("tenant_id")
+  venueId     String?     @map("venue_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  venue      Venue?     @relation(fields: [venueId], references: [id])
+  tickets    Ticket[]
+  attendees  Attendee[]
+  sessions   Session[]
+  sponsors   Sponsor[]
+
+  @@index([tenantId])
+  @@index([venueId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("events")
+}
+
+model Venue {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  city      String
+  capacity  Int
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  events Event[]
+
+  @@index([tenantId])
+  @@map("venues")
+}
+
+model Ticket {
+  id         String       @id @default(uuid())
+  eventId    String       @map("event_id")
+  attendeeId String?      @map("attendee_id")
+  type       TicketType   @default(GENERAL)
+  price      Int
+  status     TicketStatus @default(AVAILABLE)
+  tenantId   String       @map("tenant_id")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  event    Event     @relation(fields: [eventId], references: [id])
+  attendee Attendee? @relation(fields: [attendeeId], references: [id])
+
+  @@index([tenantId])
+  @@index([eventId])
+  @@index([attendeeId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([eventId, status])
+  @@map("tickets")
+}
+
+model Attendee {
+  id          String    @id @default(uuid())
+  name        String
+  email       String
+  phone       String?
+  eventId     String    @map("event_id")
+  tenantId    String    @map("tenant_id")
+  checkedIn   Boolean   @default(false) @map("checked_in")
+  checkedInAt DateTime? @map("checked_in_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  event   Event    @relation(fields: [eventId], references: [id])
+  tickets Ticket[]
+
+  @@index([tenantId])
+  @@index([eventId])
+  @@map("attendees")
+}
+
+model Speaker {
+  id        String   @id @default(uuid())
+  name      String
+  bio       String?
+  email     String
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sessions Session[]
+
+  @@index([tenantId])
+  @@map("speakers")
+}
+
+model Session {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  startTime   DateTime      @map("start_time")
+  endTime     DateTime      @map("end_time")
+  eventId     String        @map("event_id")
+  speakerId   String?       @map("speaker_id")
+  tenantId    String        @map("tenant_id")
+  status      SessionStatus @default(DRAFT)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  event   Event    @relation(fields: [eventId], references: [id])
+  speaker Speaker? @relation(fields: [speakerId], references: [id])
+
+  @@index([tenantId])
+  @@index([eventId])
+  @@index([speakerId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([eventId, status])
+  @@map("sessions")
+}
+
+model Sponsor {
+  id        String      @id @default(uuid())
+  name      String
+  tier      SponsorTier @default(BRONZE)
+  amount    Int
+  eventId   String      @map("event_id")
+  tenantId  String      @map("tenant_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([tenantId])
+  @@index([eventId])
+  @@map("sponsors")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  action    AuditAction
+  entity    String
+  entityId  String      @map("entity_id")
+  details   Json?
+  userId    String      @map("user_id")
+  tenantId  String      @map("tenant_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("audit_logs")
+}

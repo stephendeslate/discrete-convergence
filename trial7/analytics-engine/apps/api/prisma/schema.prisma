@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN @map("admin")
+  USER  @map("user")
+  VIEWER @map("viewer")
+
+  @@map("user_role")
+}
+
+enum DashboardStatus {
+  ACTIVE   @map("active")
+  ARCHIVED @map("archived")
+  DRAFT    @map("draft")
+
+  @@map("dashboard_status")
+}
+
+enum WidgetType {
+  CHART      @map("chart")
+  TABLE      @map("table")
+  METRIC     @map("metric")
+  MAP        @map("map")
+
+  @@map("widget_type")
+}
+
+enum DataSourceType {
+  POSTGRESQL @map("postgresql")
+  MYSQL      @map("mysql")
+  REST_API   @map("rest_api")
+  CSV        @map("csv")
+
+  @@map("data_source_type")
+}
+
+enum DataSourceStatus {
+  CONNECTED    @map("connected")
+  DISCONNECTED @map("disconnected")
+  ERROR        @map("error")
+
+  @@map("data_source_status")
+}
+
+enum AuditAction {
+  CREATE @map("create")
+  UPDATE @map("update")
+  DELETE @map("delete")
+  LOGIN  @map("login")
+  LOGOUT @map("logout")
+
+  @@map("audit_action")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  dashboards  Dashboard[]
+  widgets     Widget[]
+  dataSources DataSource[]
+  auditLogs   AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(USER)
+  tenantId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  auditLogs AuditLog[]
+
+  @@index([tenantId])
+  @@index([role])
+  @@index([tenantId, role])
+  @@map("users")
+}
+
+model Dashboard {
+  id          String          @id @default(uuid())
+  title       String
+  description String?
+  status      DashboardStatus @default(DRAFT)
+  tenantId    String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  widgets Widget[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("dashboards")
+}
+
+model Widget {
+  id           String     @id @default(uuid())
+  title        String
+  type         WidgetType
+  config       Json       @default("{}")
+  positionX    Int        @default(0)
+  positionY    Int        @default(0)
+  width        Int        @default(4)
+  height       Int        @default(3)
+  refreshRate  Int        @default(60)
+  costPerQuery Decimal    @db.Decimal(12, 2) @default(0)
+  dashboardId  String
+  dataSourceId String?
+  tenantId     String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  dashboard  Dashboard   @relation(fields: [dashboardId], references: [id])
+  dataSource DataSource? @relation(fields: [dataSourceId], references: [id])
+  tenant     Tenant      @relation(fields: [tenantId], references: [id])
+
+  @@index([dashboardId])
+  @@index([tenantId])
+  @@index([dataSourceId])
+  @@index([tenantId, dashboardId])
+  @@map("widgets")
+}
+
+model DataSource {
+  id             String           @id @default(uuid())
+  name           String
+  type           DataSourceType
+  connectionUrl  String
+  status         DataSourceStatus @default(DISCONNECTED)
+  monthlyCost    Decimal          @db.Decimal(12, 2) @default(0)
+  lastSyncAt     DateTime?
+  tenantId       String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  widgets Widget[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("data_sources")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  action    AuditAction
+  entity    String
+  entityId  String?
+  details   Json?
+  userId    String
+  tenantId  String
+  createdAt DateTime    @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([tenantId, action])
+  @@map("audit_logs")
+}

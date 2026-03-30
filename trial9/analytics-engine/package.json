@@ -1,0 +1,21 @@
+{
+  "name": "analytics-engine",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "dev": "turbo run dev"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": ">=3.20.0"
+    }
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3"
+  }
+}

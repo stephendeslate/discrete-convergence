@@ -1,0 +1,24 @@
+{
+  "name": "analytics-engine",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "@typescript-eslint/parser": "^8.57.2",
+    "eslint": "^10.1.0",
+    "turbo": "^2.3.0"
+  },
+  "pnpm": {
+    "auditConfig": {
+      "ignoreCves": []
+    },
+    "overrides": {}
+  }
+}

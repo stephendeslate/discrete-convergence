@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: analytics_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/analytics_test?connection_limit=5
+      JWT_SECRET: ci-test-secret
+      CORS_ORIGIN: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm turbo run lint
+
+      - name: Type check
+        run: pnpm turbo run typecheck
+
+      - name: Build
+        run: pnpm turbo run build
+
+      - name: Test
+        run: pnpm turbo run test
+
+      - name: Migration check
+        run: cd apps/api && npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --exit-code
+        continue-on-error: true
+
+      - name: Audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true

@@ -1,0 +1,31 @@
+{
+  "name": "event-management",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "dupcheck": "jscpd --threshold 5 --reporters console --ignore '**/node_modules/**,**/dist/**,**/.next/**,**/coverage/**'"
+  },
+  "devDependencies": {
+    "jscpd": "^4.0.5",
+    "turbo": "^2.5.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": ">=3.20.0",
+      "picomatch": ">=4.0.4"
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

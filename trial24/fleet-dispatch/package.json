@@ -1,0 +1,29 @@
+{
+  "name": "fleet-dispatch",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "test:cov": "turbo run test:cov",
+    "db:migrate": "pnpm --filter api exec prisma migrate deploy",
+    "db:seed": "pnpm --filter api exec prisma db seed",
+    "jscpd": "jscpd --pattern 'apps/**/*.ts' --reporters console --threshold 5"
+  },
+  "devDependencies": {
+    "jscpd": "^4.0.5",
+    "turbo": "^2.3.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": ">=3.20.0",
+      "picomatch": ">=4.0.4"
+    }
+  },
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
+  }
+}

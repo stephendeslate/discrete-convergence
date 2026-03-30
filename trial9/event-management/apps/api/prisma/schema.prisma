@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN    @map("admin")
+  USER     @map("user")
+  ORGANIZER @map("organizer")
+
+  @@map("user_role")
+}
+
+enum EventStatus {
+  DRAFT      @map("draft")
+  PUBLISHED  @map("published")
+  CANCELLED  @map("cancelled")
+  COMPLETED  @map("completed")
+
+  @@map("event_status")
+}
+
+enum TicketStatus {
+  AVAILABLE  @map("available")
+  SOLD       @map("sold")
+  CANCELLED  @map("cancelled")
+  REFUNDED   @map("refunded")
+
+  @@map("ticket_status")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         UserRole @default(USER)
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  attendees Attendee[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  status      EventStatus @default(DRAFT)
+  tenantId    String      @map("tenant_id")
+  venueId     String      @map("venue_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  venue     Venue      @relation(fields: [venueId], references: [id])
+  tickets   Ticket[]
+  schedules Schedule[]
+  attendees Attendee[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([venueId])
+  @@map("events")
+}
+
+model Venue {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  capacity  Int
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  events Event[]
+
+  @@index([tenantId])
+  @@map("venues")
+}
+
+model Ticket {
+  id       String       @id @default(uuid())
+  eventId  String       @map("event_id")
+  type     String
+  price    Decimal      @db.Decimal(12, 2)
+  status   TicketStatus @default(AVAILABLE)
+  tenantId String       @map("tenant_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([eventId])
+  @@map("tickets")
+}
+
+model Attendee {
+  id       String   @id @default(uuid())
+  eventId  String   @map("event_id")
+  userId   String   @map("user_id")
+  tenantId String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@index([tenantId])
+  @@index([eventId])
+  @@map("attendees")
+}
+
+model Schedule {
+  id        String   @id @default(uuid())
+  eventId   String   @map("event_id")
+  title     String
+  startTime DateTime @map("start_time")
+  endTime   DateTime @map("end_time")
+  location  String?
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([tenantId])
+  @@index([eventId])
+  @@map("schedules")
+}

@@ -1,0 +1,14 @@
+// TRACED:FD-AUTH-003
+export const BCRYPT_SALT_ROUNDS = 12;
+
+// TRACED:FD-AUTH-004
+export const ALLOWED_REGISTRATION_ROLES = ['DISPATCHER', 'DRIVER', 'VIEWER'] as const;
+
+// TRACED:FD-PERF-001
+export const MAX_PAGE_SIZE = 100;
+
+// TRACED:FD-PERF-002
+export const DEFAULT_PAGE_SIZE = 20;
+
+// TRACED:FD-INFRA-001
+export const APP_VERSION = '1.0.0';

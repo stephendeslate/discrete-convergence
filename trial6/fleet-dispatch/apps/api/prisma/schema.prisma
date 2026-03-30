@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantTier {
+  FREE        @map("free")
+  PRO         @map("pro")
+  ENTERPRISE  @map("enterprise")
+
+  @@map("tenant_tier")
+}
+
+enum UserRole {
+  ADMIN       @map("admin")
+  DISPATCHER  @map("dispatcher")
+  DRIVER      @map("driver")
+
+  @@map("user_role")
+}
+
+enum VehicleStatus {
+  AVAILABLE    @map("available")
+  IN_TRANSIT   @map("in_transit")
+  MAINTENANCE  @map("maintenance")
+  RETIRED      @map("retired")
+
+  @@map("vehicle_status")
+}
+
+enum DeliveryStatus {
+  PENDING     @map("pending")
+  ASSIGNED    @map("assigned")
+  IN_TRANSIT  @map("in_transit")
+  DELIVERED   @map("delivered")
+  FAILED      @map("failed")
+
+  @@map("delivery_status")
+}
+
+model Tenant {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @db.VarChar(255)
+  tier      TenantTier @default(FREE)
+  settings  Json       @default("{}")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  users      User[]
+  vehicles   Vehicle[]
+  drivers    Driver[]
+  routes     Route[]
+  deliveries Delivery[]
+  auditLogs  AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  name         String   @db.VarChar(255)
+  role         UserRole @default(DISPATCHER)
+  tenantId     String   @map("tenant_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  auditLogs AuditLog[]
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+  @@index([role])
+  @@index([tenantId, role])
+  @@index([tenantId, email])
+  @@map("users")
+}
+
+model Vehicle {
+  id           String        @id @default(uuid()) @db.Uuid
+  licensePlate String        @map("license_plate") @db.VarChar(20)
+  make         String        @db.VarChar(100)
+  model        String        @db.VarChar(100)
+  year         Int
+  status       VehicleStatus @default(AVAILABLE)
+  latitude     Decimal?      @db.Decimal(10, 7)
+  longitude    Decimal?      @db.Decimal(10, 7)
+  mileage      Decimal       @default(0) @db.Decimal(12, 2)
+  tenantId     String        @map("tenant_id") @db.Uuid
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  drivers    Driver[]
+  deliveries Delivery[]
+
+  @@unique([licensePlate, tenantId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("vehicles")
+}
+
+model Driver {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(255)
+  licenseNumber   String   @map("license_number") @db.VarChar(50)
+  phone           String   @db.VarChar(20)
+  available       Boolean  @default(true)
+  vehicleId       String?  @map("vehicle_id") @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  vehicle    Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deliveries Delivery[]
+
+  @@index([tenantId])
+  @@index([available])
+  @@index([tenantId, available])
+  @@index([tenantId, licenseNumber])
+  @@map("drivers")
+}
+
+model Route {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(255)
+  origin          String   @db.VarChar(500)
+  destination     String   @db.VarChar(500)
+  waypoints       Json     @default("[]")
+  distanceKm      Decimal  @map("distance_km") @db.Decimal(12, 2)
+  estimatedMinutes Int     @map("estimated_minutes")
+  actualMinutes   Int?     @map("actual_minutes")
+  tenantId        String   @map("tenant_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deliveries Delivery[]
+
+  @@index([tenantId])
+  @@index([tenantId, name])
+  @@map("routes")
+}
+
+model Delivery {
+  id            String         @id @default(uuid()) @db.Uuid
+  trackingCode  String         @map("tracking_code") @db.VarChar(50)
+  status        DeliveryStatus @default(PENDING)
+  recipientName String         @map("recipient_name") @db.VarChar(255)
+  address       String         @db.VarChar(500)
+  notes         String?        @db.Text
+  cost          Decimal        @default(0) @db.Decimal(12, 2)
+  vehicleId     String?        @map("vehicle_id") @db.Uuid
+  driverId      String?        @map("driver_id") @db.Uuid
+  routeId       String?        @map("route_id") @db.Uuid
+  tenantId      String         @map("tenant_id") @db.Uuid
+  scheduledAt   DateTime?      @map("scheduled_at")
+  deliveredAt   DateTime?      @map("delivered_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  vehicle  Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  driver   Driver?   @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  route    Route?    @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([trackingCode, tenantId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([trackingCode])
+  @@index([tenantId, driverId])
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, scheduledAt])
+  @@map("deliveries")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  action    String   @db.VarChar(100)
+  entity    String   @db.VarChar(100)
+  entityId  String   @map("entity_id") @db.Uuid
+  details   Json     @default("{}")
+  userId    String   @map("user_id") @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([tenantId, entity])
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}

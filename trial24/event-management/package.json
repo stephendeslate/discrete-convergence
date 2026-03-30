@@ -1,0 +1,25 @@
+{
+  "name": "event-management",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "db:migrate": "turbo run db:migrate --filter=@em/api",
+    "db:seed": "turbo run db:seed --filter=@em/api",
+    "dupcheck": "jscpd --threshold 5 --reporters console --ignore '**/node_modules/**,**/dist/**,**/.next/**,**/coverage/**'"
+  },
+  "devDependencies": {
+    "jscpd": "^4.0.5",
+    "turbo": "^2.3.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": ">=3.20.0",
+      "picomatch": ">=4.0.4"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "fleet-dispatch",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "dev": "turbo run dev",
+    "dupcheck": "jscpd --threshold 5 --reporters console --ignore '**/node_modules/**,**/dist/**,**/.next/**,**/coverage/**'"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "jscpd": "^4.0.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": ">=3.20.0",
+      "picomatch": ">=4.0.4"
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

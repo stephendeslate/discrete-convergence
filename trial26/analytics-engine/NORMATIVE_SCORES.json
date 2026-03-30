@@ -1,0 +1,705 @@
+[
+  {
+    "dimension": "CO-CE",
+    "name": "Co-existence",
+    "score": 10,
+    "metrics": {
+      "port_refs": 1,
+      "db_refs": 5,
+      "hardcoded_ports": 0,
+      "compose_port_ok": 1,
+      "global_mutations": 0,
+      "port_flexibility": "pass",
+      "runtime_mode": "true",
+      "checks_passed": 6,
+      "checks_total": 6,
+      "skipped": 0,
+      "raw_score": 10
+    },
+    "details": "configurable-port: PASS (1 files read PORT from env). configurable-db-url: PASS (5 files reference DATABASE_URL from env). no-hardcoded-ports: PASS. compose-port-mapping: PASS (2 port mappings found). no-global-state: PASS. port-flexibility-runtime: PASS (API responds on non-default port 27698, runtime). ",
+    "scored_at": "2026-03-27T05:35:14Z"
+  },
+  {
+    "dimension": "CO-IO",
+    "name": "Interoperability",
+    "score": 10,
+    "metrics": {
+      "json_refs": 1,
+      "has_api_spec": 1,
+      "bearer_refs": 32,
+      "distinct_status_codes": 7,
+      "cors_refs": 2,
+      "checks_passed": 5,
+      "checks_total": 5
+    },
+    "details": "json-content-type: PASS (1 files). api-spec-exists: PASS (specs=1, swagger=0). standard-auth-header: PASS (32 references). standard-http-status-codes: PASS (7 distinct codes). cors-configured: PASS (2 files). ",
+    "scored_at": "2026-03-27T05:35:14Z"
+  },
+  {
+    "dimension": "FL-AD",
+    "name": "Adaptability",
+    "score": 5,
+    "metrics": {
+      "env_reads": 4,
+      "env_example_vars": 5,
+      "dockerfile_stages": 3,
+      "node_env_refs": 0,
+      "hardcoded_db": 0,
+      "checks_passed": 3,
+      "checks_total": 5
+    },
+    "details": "env-driven: FAIL (4 process.env reads, need >= 5). env-example: PASS (5 variables in .env.example). multi-stage-docker: PASS (3 FROM stages). node-env-awareness: FAIL (no NODE_ENV checks in source). db-url-external: PASS. ",
+    "scored_at": "2026-03-27T05:35:14Z"
+  },
+  {
+    "dimension": "FL-IN",
+    "name": "Installability",
+    "score": 5,
+    "metrics": {
+      "has_lockfile": 1,
+      "has_package_json": 1,
+      "docker_valid": 1,
+      "compose_valid": 1,
+      "dockerignore_ok": 1,
+      "docker_build_result": "skip",
+      "checks_passed": 5,
+      "checks_total": 6,
+      "skipped": 1,
+      "raw_score": 8
+    },
+    "details": "pnpm-install: PASS (pnpm-lock.yaml and package.json present). docker-build: PASS (valid Dockerfile). compose-up: PASS (docker-compose.yml with services). dockerignore: PASS (7 entries). lockfile: PASS. docker-build-succeeds: SKIP (requires compose test data). ",
+    "scored_at": "2026-03-27T05:35:14Z"
+  },
+  {
+    "dimension": "FL-RP",
+    "name": "Replaceability",
+    "score": 10,
+    "metrics": {
+      "checks_passed": 4,
+      "checks_total": 4,
+      "total_routes": 27,
+      "orm_calls": 40,
+      "raw_sql": 2,
+      "vendor_imports": 0,
+      "jwt_files": 4
+    },
+    "details": "rest-conventions: PASS (27/27 routes, 100%). orm-abstraction: PASS (ORM=40, raw=2, 95% ORM). no-vendor-lock: PASS (0 cloud SDK imports in services). standard-auth: PASS (4 files use JWT). ",
+    "scored_at": "2026-03-27T05:35:14Z"
+  },
+  {
+    "dimension": "FL-SC",
+    "name": "Scalability",
+    "score": 5,
+    "metrics": {
+      "session_refs": 0,
+      "jwt_files": 4,
+      "list_methods": 56,
+      "pagination_params": 49,
+      "pagination_utility_files": 15,
+      "db_indexes": 12,
+      "pool_config": 7,
+      "prisma_files": 14,
+      "runtime_mode": "true",
+      "checks_passed": 4,
+      "checks_total": 5,
+      "skipped": 1,
+      "raw_score": 7
+    },
+    "details": "stateless-api: PASS (JWT-based auth, 0 session stores, 4 JWT refs). pagination: PASS (pagination utility found, 15 files; 49 skip/take refs). concurrent-handling: SKIP (requires load test data). db-indexing: PASS (12 indexes/unique constraints in schema). connection-pool-env: PASS (explicit pool config present, 7 references). ",
+    "scored_at": "2026-03-27T05:35:14Z"
+  },
+  {
+    "dimension": "FS-AP",
+    "name": "Functional Appropriateness",
+    "score": 7,
+    "metrics": {
+      "orphan_methods": 0,
+      "god_controllers": 0,
+      "god_services": 0,
+      "http_method_pct": 85,
+      "pagination_pct": 80,
+      "checks_passed": 4,
+      "checks_total": 5
+    },
+    "details": "no-unused-endpoints: PASS (0 orphan methods). no-god-controllers: PASS (all <= 300 lines). no-god-services: PASS (all <= 400 lines). appropriate-http-methods: FAIL (23/27 = 85%). pagination-on-list-endpoints: PASS (8/10 = 80%). ",
+    "scored_at": "2026-03-27T05:35:15Z"
+  },
+  {
+    "dimension": "FS-CO",
+    "name": "Functional Completeness",
+    "score": 4,
+    "metrics": {
+      "spec_endpoints": 51,
+      "impl_endpoints": 27,
+      "orphan_models": 2,
+      "crud_pct": 42,
+      "page_count": 10,
+      "checks_passed": 3,
+      "checks_total": 6
+    },
+    "details": "spec-endpoint-count: PASS (51 >= 10). impl-endpoint-count: PASS (27 >= 10). endpoint-coverage-ratio: FAIL (27/51 = 52%). prisma-model-service-parity: FAIL (2 orphan models). crud-completeness: FAIL (3/7 = 42%). frontend-route-coverage: PASS (10 pages, 83%). ",
+    "scored_at": "2026-03-27T05:35:16Z"
+  },
+  {
+    "dimension": "FS-CR",
+    "name": "Functional Correctness",
+    "score": 10,
+    "metrics": {
+      "tsc_exit": 0,
+      "unit_passed": 97,
+      "unit_total": 97,
+      "integ_passed": 30,
+      "integ_total": 30,
+      "stub_count": 0,
+      "dto_alignment_pct": 98,
+      "checks_passed": 5,
+      "checks_total": 5
+    },
+    "details": "tsc-clean: PASS (exit 0). unit-tests-pass: PASS (97/97 passed). integration-tests-pass: PASS (30/30 passed). no-stub-methods: PASS (0 stubs). dto-schema-alignment: PASS (52/53 = 98%). ",
+    "scored_at": "2026-03-27T05:35:22Z"
+  },
+  {
+    "dimension": "IC-AR",
+    "name": "Appropriateness Recognizability",
+    "score": 7,
+    "metrics": {
+      "title_refs": 1,
+      "nav_refs": 2,
+      "heading_pct": 80,
+      "favicon_found": 0,
+      "checks_passed": 4,
+      "checks_total": 5
+    },
+    "details": "landing-page-exists: PASS. page-title-set: PASS (1 files with title). navigation-exists: PASS (2 files with nav). descriptive-headings: PASS (8/10 = 80%). favicon-exists: FAIL (no favicon found). ",
+    "scored_at": "2026-03-27T05:35:22Z"
+  },
+  {
+    "dimension": "IC-EP",
+    "name": "User Error Protection",
+    "score": 2,
+    "metrics": {
+      "client_validation_refs": 5,
+      "confirm_dialogs": 0,
+      "input_types_used": 2,
+      "form_error_messages": 4,
+      "input_constraints": 2,
+      "runtime_mode": "true",
+      "checks_passed": 2,
+      "checks_total": 6,
+      "skipped": 0,
+      "raw_score": 2
+    },
+    "details": "client-validation: PASS (zod=0, yup=0, html5=5). confirm-destructive: FAIL (no confirmation dialogs for delete operations). input-types: FAIL (2 distinct types < 3: email=2 number=0 password=2). form-error-messages: PASS (4 files show form error messages). input-constraints: FAIL (2 < 3 input constraint attributes in web app). api-rejects-invalid-dto: FAIL (400 but no structured error message). ",
+    "scored_at": "2026-03-27T05:35:23Z"
+  },
+  {
+    "dimension": "IC-IN",
+    "name": "Inclusivity",
+    "score": 10,
+    "metrics": {
+      "aria_files": 3,
+      "role_files": 3,
+      "aria_label_files": 0,
+      "contrast_patterns": 91,
+      "img_total": 0,
+      "img_missing_alt": 0,
+      "lang_refs": 1,
+      "checks_passed": 5,
+      "checks_total": 5
+    },
+    "details": "axe-zero-critical: PASS (3 files with aria attributes; axe-core runtime skipped). axe-zero-serious: PASS (3 role/aria-label references; axe-core runtime skipped). color-contrast: PASS (91 contrast/theme patterns; runtime check skipped). alt-text: PASS (0 images missing alt; 0 total images). lang-attribute: PASS (lang= found on html element). ",
+    "scored_at": "2026-03-27T05:35:23Z"
+  },
+  {
+    "dimension": "IC-LE",
+    "name": "Learnability",
+    "score": 4,
+    "metrics": {
+      "total_inputs": 7,
+      "labeled_inputs": 13,
+      "breadcrumb_refs": 0,
+      "layout_files": 1,
+      "helpful_error_messages": 13,
+      "rendered_html": "skip",
+      "runtime_mode": "true",
+      "checks_passed": 3,
+      "checks_total": 6,
+      "skipped": 1,
+      "raw_score": 4
+    },
+    "details": "login-page-renders: PASS (found /home/stephen/projects/normative-convergence/trial26/analytics-engine/apps/web/app/login/page.tsx). form-labels: PASS (185% labeled, 13/7). breadcrumbs-or-back: FAIL (no breadcrumbs or back navigation found). consistent-layout: FAIL (1 layout.tsx files < 2, need root + at least one nested). helpful-error-messages: PASS (13 descriptive error/toast messages). rendered-html-check: SKIP (root returns JSON, frontend may be on different port). ",
+    "scored_at": "2026-03-27T05:35:23Z"
+  },
+  {
+    "dimension": "IC-OP",
+    "name": "Operability",
+    "score": 3,
+    "metrics": {
+      "loading_total": 4,
+      "error_total": 0,
+      "feedback_refs": 0,
+      "responsive_files": 5,
+      "bad_onclick": 0,
+      "total_buttons": 7,
+      "checks_passed": 2,
+      "checks_total": 5
+    },
+    "details": "loading-states: PASS (4 total: 0 loading.tsx + 4 component files). error-states: FAIL (no error.tsx or ErrorBoundary). form-submit-feedback: FAIL (no submit feedback patterns). responsive-design: FAIL (5 files < 10). keyboard-accessible: PASS (bad_onclick=0, buttons=7). ",
+    "scored_at": "2026-03-27T05:35:23Z"
+  },
+  {
+    "dimension": "IC-SD",
+    "name": "Self-Descriptiveness",
+    "score": 3,
+    "metrics": {
+      "endpoint_docs": 24,
+      "comment_lines": 128,
+      "total_lines": 4344,
+      "checks_passed": 2,
+      "checks_total": 5
+    },
+    "details": "readme-exists: FAIL (no README.md). readme-substantive: FAIL (no README.md). api-docs: PASS (24 documented endpoints). env-example: FAIL (0 < 3 comment lines). code-comments: PASS (128/4344 = 2.94%). ",
+    "scored_at": "2026-03-27T05:35:23Z"
+  },
+  {
+    "dimension": "IC-UA",
+    "name": "User Assistance",
+    "score": 2,
+    "metrics": {
+      "placeholder_pct": 37,
+      "tooltip_refs": 0,
+      "empty_state_files": 0,
+      "error_msg_files": 7,
+      "checks_passed": 1,
+      "checks_total": 4
+    },
+    "details": "placeholder-text: FAIL (3/8 = 37%). tooltips-help: FAIL (0 < 3). empty-states: FAIL (0 < 2 files with empty state messages). api-error-messages: PASS (7 files). ",
+    "scored_at": "2026-03-27T05:35:23Z"
+  },
+  {
+    "dimension": "IC-UE",
+    "name": "User Engagement",
+    "score": 5,
+    "metrics": {
+      "distinct_ui_components": 0,
+      "theme_total": 10,
+      "dark_mode_refs": 16,
+      "icon_refs": 3,
+      "transition_files": 5,
+      "checks_passed": 3,
+      "checks_total": 5
+    },
+    "details": "component-library: FAIL (0 < 8 distinct ui components). color-theme: PASS (css_vars=3, tw_theme=7). dark-mode: PASS (16 files). icon-library: FAIL (3 < 5 icon references). transitions: PASS (5 files). ",
+    "scored_at": "2026-03-27T05:35:23Z"
+  },
+  {
+    "dimension": "MA-AN",
+    "name": "Analysability",
+    "score": 7,
+    "metrics": {
+      "checks_passed": 4,
+      "checks_total": 5,
+      "source_files": 73,
+      "max_nesting_depth": 4,
+      "max_file_lines": 149,
+      "max_function_lines": 111,
+      "kebab_case_pct": 100,
+      "duplication_pct": 0
+    },
+    "details": "nesting-depth: PASS (max control-flow nesting 4). file-size: PASS (max 149 lines, all <= 500). function-size: FAIL (max function 111 lines > 80). naming-consistency: PASS (73/73 kebab-case, 100%). low-duplication: PASS (est. 0% duplication, 0 similar file pairs). ",
+    "scored_at": "2026-03-27T05:35:36Z"
+  },
+  {
+    "dimension": "MA-MD",
+    "name": "Modifiability",
+    "score": 10,
+    "metrics": {
+      "checks_passed": 5,
+      "checks_total": 5,
+      "as_any_count": 0,
+      "strict_ts": 1,
+      "eslint_configured": 1,
+      "magic_numbers": 1,
+      "interfaces": 7
+    },
+    "details": "no-as-any: PASS. strict-typescript: PASS. eslint-configured: PASS. no-magic-numbers: PASS (1 magic numbers). interface-driven: PASS (7 interface/abstract declarations). ",
+    "scored_at": "2026-03-27T05:35:36Z"
+  },
+  {
+    "dimension": "MA-MO",
+    "name": "Modularity",
+    "score": 8,
+    "metrics": {
+      "checks_passed": 5,
+      "checks_total": 6,
+      "nest_modules": 8,
+      "workspaces": 3,
+      "circular_pairs": 0,
+      "max_domain_imports": 1,
+      "prisma_in_controllers": 1
+    },
+    "details": "module-per-domain: PASS (8 modules). monorepo-separation: PASS (3 workspaces). no-circular-imports: PASS. max-coupling: PASS (max 1 domain module imports). shared-package: PASS (8 files import shared). controller-service-split: FAIL (1 controllers use Prisma directly). ",
+    "scored_at": "2026-03-27T05:35:36Z"
+  },
+  {
+    "dimension": "MA-RE",
+    "name": "Reusability",
+    "score": 7,
+    "metrics": {
+      "checks_passed": 4,
+      "checks_total": 5,
+      "api_shared_imports": 8,
+      "web_shared_imports": 0,
+      "utility_files": 10,
+      "decorated_dtos": 8
+    },
+    "details": "shared-exports: PASS (12 exports). shared-consumed: FAIL (api=8, web=0 — both must import shared). utility-functions: PASS (10 utility files). dto-decorators: PASS (8 validated DTOs). cn-utility: PASS (8 files use cn()/cva()). ",
+    "scored_at": "2026-03-27T05:35:36Z"
+  },
+  {
+    "dimension": "MA-TE",
+    "name": "Testability",
+    "score": 10,
+    "metrics": {
+      "test_files": 22,
+      "jest_configs": 3,
+      "test_blocks": 169,
+      "integration_files": 4,
+      "tautological_assertions": 0,
+      "checks_passed": 7,
+      "checks_total": 7
+    },
+    "details": "test-files: PASS (22 >= 10). test-config: PASS (3 jest config file(s)). test-script: PASS (test script in package.json). unit-test-count: PASS (169 blocks >= 30). integration-tests: PASS (4 >= 3). coverage-config: PASS (coverage config found). no-tautological: PASS (0 tautological assertions). ",
+    "scored_at": "2026-03-27T05:35:37Z"
+  },
+  {
+    "dimension": "PE-CA",
+    "name": "Capacity",
+    "score": 5,
+    "metrics": {
+      "payload_config": 7,
+      "pool_config": 7,
+      "prisma_used": 29,
+      "throttle_files": 2,
+      "throttle_limit": 20,
+      "runtime_mode": "true",
+      "checks_passed": 3,
+      "checks_total": 4,
+      "skipped": 1,
+      "raw_score": 7
+    },
+    "details": "concurrent-connections: SKIP (requires load test data). large-payload-handling: PASS (7 payload size config references). db-connection-pool: PASS (explicit pool config, 7 references). throttle-reasonable-limit: PASS (limit=20 in 10-1000 range). ",
+    "scored_at": "2026-03-27T05:35:37Z"
+  },
+  {
+    "dimension": "PE-RU",
+    "name": "Resource Utilization",
+    "score": 2,
+    "metrics": {
+      "rss_idle_mb": 0,
+      "uses_pnpm": 1,
+      "runtime_mode": "true",
+      "checks_passed": 1,
+      "checks_total": 5,
+      "skipped": 3,
+      "raw_score": 2
+    },
+    "details": "memory-at-idle: SKIP (requires load test data). memory-under-load: SKIP (requires load test data). no-memory-leak: SKIP (requires load test data). docker-image-size: PASS (multi-stage Dockerfile with 3 stages). node-modules-size: FAIL (839MB >= 500MB). ",
+    "scored_at": "2026-03-27T05:35:38Z"
+  },
+  {
+    "dimension": "PE-TB",
+    "name": "Time Behavior",
+    "score": 5,
+    "metrics": {
+      "health_time_ms": 1,
+      "p95_latency": 0,
+      "timing_middleware_files": 1,
+      "list_time_ms": 0,
+      "rps": 0,
+      "runtime_mode": "true",
+      "checks_passed": 3,
+      "checks_total": 5,
+      "skipped": 2,
+      "raw_score": 5
+    },
+    "details": "health-response-time: PASS (1ms < 50ms, runtime). api-p95-latency: SKIP (requires load test data). response-time-header: PASS (1 files with timing middleware). list-endpoint-latency: PASS (0ms < 200ms, runtime). throughput-baseline: SKIP (requires load test data). ",
+    "scored_at": "2026-03-27T05:35:38Z"
+  },
+  {
+    "dimension": "RE-AV",
+    "name": "Availability",
+    "score": 5,
+    "metrics": {
+      "health_refs": 2,
+      "readiness_refs": 1,
+      "docker_healthcheck": 1,
+      "startup_refs": 4,
+      "restart_ok": 0,
+      "runtime_mode": "true",
+      "checks_passed": 5,
+      "checks_total": 7,
+      "skipped": 1,
+      "raw_score": 6
+    },
+    "details": "healthcheck-endpoint: PASS (2 files). readiness-endpoint: PASS (1 files). docker-healthcheck: PASS. graceful-startup: PASS (4 files with startup lifecycle hooks). restart-policy: FAIL (no restart policy in docker-compose.yml). health-returns-json: PASS (200 + JSON with status field, runtime). graceful-shutdown-recovery: SKIP (requires resilience test data). ",
+    "scored_at": "2026-03-27T05:35:38Z"
+  },
+  {
+    "dimension": "RE-FL",
+    "name": "Faultlessness",
+    "score": 10,
+    "metrics": {
+      "tsc_errors": 0,
+      "eslint_errors": 0,
+      "test_passed": 127,
+      "test_total": 127,
+      "test_failed": 0,
+      "unhandled_async": 0,
+      "has_global_filter": 3,
+      "structured_logger_files": 3,
+      "checks_passed": 5,
+      "checks_total": 5
+    },
+    "details": "tsc-zero-errors: PASS (0 errors). eslint-zero-errors: PASS (0 errors). test-pass-rate: PASS (127/127, 100%). no-uncaught-exceptions: PASS (0 unhandled async methods). structured-logging: PASS (3 files use structured logger). ",
+    "scored_at": "2026-03-27T05:35:44Z"
+  },
+  {
+    "dimension": "RE-FT",
+    "name": "Fault Tolerance",
+    "score": 3,
+    "metrics": {
+      "db_error_handling": 3,
+      "reconnect_refs": 12,
+      "exception_filter": 4,
+      "process_exit_in_filter": 0,
+      "resilience_refs": 0,
+      "pool_refs": 0,
+      "db_pause_structured": "skip",
+      "runtime_mode": "true",
+      "checks_passed": 3,
+      "checks_total": 7,
+      "skipped": 1,
+      "raw_score": 3
+    },
+    "details": "db-disconnect-survives: PASS (3 files with DB error handling). db-reconnect: PASS (12 files with reconnect/retry logic). exception-filter-no-crash: PASS (4 filter files, 0 process.exit). retry-or-resilience: FAIL (no retry/backoff/circuit-breaker patterns found). connection-pool: FAIL (no connection pool configuration found). error-response-structured: FAIL (JSON error missing message/error field). db-pause-structured-error: SKIP (requires resilience test data). ",
+    "scored_at": "2026-03-27T05:35:44Z"
+  },
+  {
+    "dimension": "RE-RC",
+    "name": "Recoverability",
+    "score": 6,
+    "metrics": {
+      "migration_count": 1,
+      "sql_files": 1,
+      "seed_in_pkg": 0,
+      "lifecycle_impl": 0,
+      "volume_ok": 1,
+      "data_via_api": "fail",
+      "runtime_mode": "true",
+      "checks_passed": 4,
+      "checks_total": 6,
+      "skipped": 0,
+      "raw_score": 6
+    },
+    "details": "migrations-exist: PASS (1 migrations). migrate-deploys: PASS (1 non-empty SQL migration files). seed-mechanism: PASS. shutdown-lifecycle: FAIL (no onApplicationShutdown/beforeApplicationShutdown implementation). data-persists-restart: PASS (volume mount found). data-persists-via-api: FAIL (could not create + retrieve data via API). ",
+    "scored_at": "2026-03-27T05:35:44Z"
+  },
+  {
+    "dimension": "SA-FS",
+    "name": "Fail Safe",
+    "score": 5,
+    "metrics": {
+      "shutdown_refs": 1,
+      "db_try_catch": 0,
+      "filter_count": 4,
+      "stack_leak": 0,
+      "health_db": 0,
+      "safe_stop": 1,
+      "db_pause_result": "skip",
+      "runtime_mode": "true",
+      "checks_passed": 4,
+      "checks_total": 7,
+      "skipped": 1,
+      "raw_score": 5
+    },
+    "details": "graceful-shutdown: PASS (1 files). db-failure-no-crash: FAIL (no try/catch around prisma calls found). safe-error-response: PASS (4 filter files, no stack trace leak). health-reflects-state: FAIL (health endpoint does not check DB state). safe-stop: PASS (stop_grace_period or SIGTERM handling). not-found-returns-json: PASS (404 JSON, no stack trace, runtime). db-pause-graceful-degradation: SKIP (requires resilience test data). ",
+    "scored_at": "2026-03-27T05:35:44Z"
+  },
+  {
+    "dimension": "SA-HW",
+    "name": "Hazard Warning",
+    "score": 7,
+    "metrics": {
+      "checks_passed": 3,
+      "checks_total": 4,
+      "deprecated_imports": 0,
+      "own_deprecated": 0,
+      "deprecated_documented": 0,
+      "security_doc_refs": 8,
+      "error_logging_files": 2,
+      "total_validators": 94,
+      "validators_with_message": 0
+    },
+    "details": "deprecation-hygiene: PASS (no deprecated imports, 0 own @deprecated all documented). security-docs: PASS (8 security documentation references). error-logging: PASS (2 files with error logging). validation-messages: FAIL (0/94 with messages, 0% < 30%). ",
+    "scored_at": "2026-03-27T05:35:44Z"
+  },
+  {
+    "dimension": "SA-OC",
+    "name": "Operational Constraint",
+    "score": 7,
+    "metrics": {
+      "checks_passed": 3,
+      "checks_total": 4,
+      "env_validation_refs": 12,
+      "rate_limit_refs": 13,
+      "size_limit_refs": 6,
+      "timeout_refs": 0
+    },
+    "details": "env-validation: PASS (12 env validation references). rate-limit-configured: PASS (13 explicit limit/ttl values). request-size-limit: PASS (6 size limit references). timeout-configured: FAIL (no timeout configuration found). ",
+    "scored_at": "2026-03-27T05:35:44Z"
+  },
+  {
+    "dimension": "SA-RI",
+    "name": "Risk Identification",
+    "score": 7,
+    "metrics": {
+      "checks_passed": 3,
+      "checks_total": 4,
+      "audit_ok": 1,
+      "security_eslint_refs": 0,
+      "ci_pipeline": 1,
+      "filter_files_with_logging": 2
+    },
+    "details": "audit-runnable: PASS (audit command runs successfully). security-eslint: FAIL (no security ESLint rules found). ci-pipeline: PASS (GitHub Actions workflows found). error-monitoring: PASS (2 filter files with error logging). ",
+    "scored_at": "2026-03-27T05:35:45Z"
+  },
+  {
+    "dimension": "SA-SI",
+    "name": "Safe Integration",
+    "score": 3,
+    "metrics": {
+      "migration_idempotent": 0,
+      "sql_total": 1,
+      "idempotent_sql_files": 0,
+      "docker_build_cache": 1,
+      "env_coverage_pct": 83,
+      "compose_deps": 1,
+      "migration_committed": 0,
+      "committed_count": 0,
+      "checks_passed": 2,
+      "checks_total": 5
+    },
+    "details": "migration-idempotent: FAIL (0/1 SQL files have idempotent patterns, need >= 50%). docker-build-cache: PASS (package files copied before source). env-coverage: FAIL (5/6 vars covered, 83%, need >= 90%). compose-deps: PASS (depends_on found). migration-committed: FAIL (migration files not committed to git). ",
+    "scored_at": "2026-03-27T05:35:45Z"
+  },
+  {
+    "dimension": "SE-AC",
+    "name": "Accountability",
+    "score": 5,
+    "metrics": {
+      "checks_passed": 3,
+      "checks_total": 5,
+      "user_context_files": 0,
+      "runtime_user_context": 0,
+      "tenant_files": 23,
+      "public_mutations": 2,
+      "runtime_mode": "true",
+      "skipped": 0,
+      "raw_score": 5
+    },
+    "details": "user-id-in-jwt: PASS. user-context: FAIL (no @Req()/@Request()/req.user/@CurrentUser in controllers). tenant-propagation: PASS (23 files reference tenantId). ownership-fields: PASS (1 ownership fields in schema). no-anonymous-mutations: FAIL (2 public mutation routes). ",
+    "scored_at": "2026-03-27T05:35:45Z"
+  },
+  {
+    "dimension": "SE-AU",
+    "name": "Authenticity",
+    "score": 7,
+    "metrics": {
+      "sign_with_expiry": 1,
+      "refresh_token_files": 0,
+      "runtime_mode": "true",
+      "checks_passed": 4,
+      "checks_total": 5,
+      "skipped": 0,
+      "raw_score": 7
+    },
+    "details": "login-returns-token: PASS (login returns token, runtime). invalid-creds-rejected: PASS (bad creds returned 401, runtime). protected-without-token: PASS (no-auth request returned 401, runtime). token-has-expiry: PASS (1 sign calls with expiresIn). refresh-token: FAIL (no refresh token mechanism found). ",
+    "scored_at": "2026-03-27T05:35:45Z"
+  },
+  {
+    "dimension": "SE-CF",
+    "name": "Confidentiality",
+    "score": 10,
+    "metrics": {
+      "jwt_refs": 6,
+      "guard_refs": 4,
+      "hash_refs": 2,
+      "secrets_found": 0,
+      "rls_refs": 2,
+      "checks_passed": 6,
+      "checks_total": 6
+    },
+    "details": "jwt-auth-module: PASS (6 files). auth-guard: PASS (4 files). password-hashing: PASS (2 files). no-secrets-in-source: PASS. env-secrets-placeholders: PASS. rls-policies: PASS (2 migration files). ",
+    "scored_at": "2026-03-27T05:35:45Z"
+  },
+  {
+    "dimension": "SE-IG",
+    "name": "Integrity",
+    "score": 10,
+    "metrics": {
+      "dto_decorators": 94,
+      "whitelist_files": 2,
+      "forbid_files": 2,
+      "raw_unsafe": 0,
+      "tenant_refs": 23,
+      "mass_assign": 0,
+      "security_headers": 3,
+      "runtime_mode": "true",
+      "checks_passed": 6,
+      "checks_total": 6,
+      "skipped": 0,
+      "raw_score": 10
+    },
+    "details": "dto-validation: PASS (94 decorators). whitelist-validation: PASS (whitelist=2, forbid=2). no-raw-unsafe: PASS. tenant-scoping: PASS (23 files with tenant scoping). no-mass-assignment: PASS. security-headers-runtime: PASS (3/3 security headers present, runtime). ",
+    "scored_at": "2026-03-27T05:35:45Z"
+  },
+  {
+    "dimension": "SE-NR",
+    "name": "Non-Repudiation",
+    "score": 2,
+    "metrics": {
+      "checks_passed": 1,
+      "checks_total": 4,
+      "logging_files": 0,
+      "request_id_files": 1,
+      "runtime_request_id": 0,
+      "runtime_mode": "true",
+      "skipped": 0,
+      "raw_score": 2
+    },
+    "details": "structured-logging: FAIL (no Logger/PinoLogger/LoggerService found). request-id: PASS (1 files; runtime header not verified). audit-fields: FAIL (5/7 models, 71% < 80%). auth-events-logged: FAIL (no log calls in auth service). ",
+    "scored_at": "2026-03-27T05:35:45Z"
+  },
+  {
+    "dimension": "SE-RS",
+    "name": "Resistance",
+    "score": 8,
+    "metrics": {
+      "raw_unsafe_queries": 0,
+      "prisma_files": 14,
+      "dangerous_html": 0,
+      "throttle_files": 2,
+      "helmet_refs": 2,
+      "csp_refs": 1,
+      "audit_critical": 0,
+      "runtime_mode": "true",
+      "checks_passed": 7,
+      "checks_total": 8,
+      "skipped": 0,
+      "raw_score": 8
+    },
+    "details": "sqli-resistance: PASS (Prisma ORM, 0 unsafe raw queries). xss-resistance: PASS (0 dangerouslySetInnerHTML, React auto-escaping). rate-limiting: PASS (2 files with throttling/rate-limiting). no-version-leak: PASS (helmet or x-powered-by disabled, 2 refs). csp-headers: PASS (1 CSP/helmet references). audit-zero-critical: PASS (0 critical vulnerabilities in pnpm audit). sqli-runtime-probe: PASS (SQLi payload returned 400, runtime). rate-limit-runtime-probe: FAIL (no 429 after 150 requests). ",
+    "scored_at": "2026-03-27T05:35:46Z"
+  }
+]

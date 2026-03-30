@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN   @map("ADMIN")
+  USER    @map("USER")
+  ANALYST @map("ANALYST")
+
+  @@map("user_role")
+}
+
+enum DashboardStatus {
+  DRAFT     @map("DRAFT")
+  PUBLISHED @map("PUBLISHED")
+  ARCHIVED  @map("ARCHIVED")
+
+  @@map("dashboard_status")
+}
+
+enum WidgetType {
+  CHART  @map("CHART")
+  TABLE  @map("TABLE")
+  METRIC @map("METRIC")
+  MAP    @map("MAP")
+
+  @@map("widget_type")
+}
+
+enum DataSourceType {
+  POSTGRES @map("POSTGRES")
+  API      @map("API")
+  CSV      @map("CSV")
+
+  @@map("data_source_type")
+}
+
+enum DataSourceStatus {
+  ACTIVE   @map("ACTIVE")
+  INACTIVE @map("INACTIVE")
+  ERROR    @map("ERROR")
+
+  @@map("data_source_status")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users       User[]
+  dashboards  Dashboard[]
+  dataSources DataSource[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(USER)
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([email])
+  @@index([tenantId, role])
+  @@map("users")
+}
+
+model Dashboard {
+  id          String          @id @default(uuid())
+  title       String
+  description String?
+  layout      Json            @default("{}")
+  status      DashboardStatus @default(DRAFT)
+  tenantId    String          @map("tenant_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  widgets Widget[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("dashboards")
+}
+
+model Widget {
+  id          String     @id @default(uuid())
+  type        WidgetType
+  title       String
+  config      Json       @default("{}")
+  position    Int        @default(0)
+  dashboardId String     @map("dashboard_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id])
+
+  @@index([dashboardId])
+  @@map("widgets")
+}
+
+model DataSource {
+  id               String           @id @default(uuid())
+  name             String
+  type             DataSourceType
+  connectionString String?          @map("connection_string")
+  status           DataSourceStatus @default(ACTIVE)
+  tenantId         String           @map("tenant_id")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("data_sources")
+}

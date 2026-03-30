@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eventmgmt
+      POSTGRES_PASSWORD: eventmgmt_pass
+      POSTGRES_DB: event_management
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    ports:
+      - '3001:3001'
+    environment:
+      DATABASE_URL: postgresql://eventmgmt:eventmgmt_pass@db:5432/event_management
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-refresh-in-production}
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:3000
+    depends_on:
+      - db
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      API_URL: http://api:3001
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

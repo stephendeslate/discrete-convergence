@@ -1,0 +1,25 @@
+import { Test } from '@nestjs/testing';
+import { FuelController } from './fuel.controller';
+import { FuelService } from './fuel.service';
+
+describe('FuelController', () => {
+  let controller: FuelController;
+  let service: { findAll: jest.Mock; findOne: jest.Mock; create: jest.Mock; remove: jest.Mock };
+
+  beforeEach(async () => {
+    service = { findAll: jest.fn(), findOne: jest.fn(), create: jest.fn(), remove: jest.fn() };
+    const module = await Test.createTestingModule({
+      controllers: [FuelController],
+      providers: [{ provide: FuelService, useValue: service }],
+    }).compile();
+    controller = module.get(FuelController);
+  });
+
+  it('should be defined', () => { expect(controller).toBeDefined(); });
+
+  it('findAll passes tenantId', async () => {
+    service.findAll.mockResolvedValue({ data: [], total: 0 });
+    await controller.findAll({ user: { tenantId: 't1' } } as any, { page: 1, limit: 20 });
+    expect(service.findAll).toHaveBeenCalledWith('t1', 1, 20);
+  });
+});

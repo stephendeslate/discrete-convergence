@@ -1,0 +1,183 @@
+// TRACED: FD-DATA-001
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// TRACED: FD-DATA-002
+enum UserRole {
+  ADMIN    @map("admin")
+  DRIVER   @map("driver")
+  DISPATCHER @map("dispatcher")
+
+  @@map("user_role")
+}
+
+// TRACED: FD-DATA-003
+enum VehicleStatus {
+  AVAILABLE    @map("available")
+  IN_USE       @map("in_use")
+  MAINTENANCE  @map("maintenance")
+  RETIRED      @map("retired")
+
+  @@map("vehicle_status")
+}
+
+// TRACED: FD-DATA-004
+enum DispatchStatus {
+  PENDING    @map("pending")
+  ASSIGNED   @map("assigned")
+  IN_TRANSIT @map("in_transit")
+  DELIVERED  @map("delivered")
+  CANCELLED  @map("cancelled")
+
+  @@map("dispatch_status")
+}
+
+// TRACED: FD-DATA-005
+enum DriverStatus {
+  ACTIVE     @map("active")
+  INACTIVE   @map("inactive")
+  ON_LEAVE   @map("on_leave")
+  SUSPENDED  @map("suspended")
+
+  @@map("driver_status")
+}
+
+// TRACED: FD-DATA-006
+enum RouteStatus {
+  PLANNED   @map("planned")
+  ACTIVE    @map("active")
+  COMPLETED @map("completed")
+  CANCELLED @map("cancelled")
+
+  @@map("route_status")
+}
+
+// TRACED: FD-DATA-007
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(DISPATCHER)
+  tenantId  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+// TRACED: FD-DATA-008
+model Vehicle {
+  id            String        @id @default(uuid())
+  licensePlate  String        @map("license_plate")
+  make          String
+  model         String
+  year          Int
+  capacity      Decimal       @db.Decimal(12, 2)
+  status        VehicleStatus @default(AVAILABLE)
+  tenantId      String        @map("tenant_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  dispatches    Dispatch[]
+  routeStops    RouteStop[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("vehicles")
+}
+
+// TRACED: FD-DATA-009
+model Driver {
+  id            String       @id @default(uuid())
+  name          String
+  licenseNumber String       @map("license_number")
+  phone         String
+  email         String
+  status        DriverStatus @default(ACTIVE)
+  tenantId      String       @map("tenant_id")
+  costPerMile   Decimal      @db.Decimal(12, 2) @map("cost_per_mile")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  dispatches    Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("drivers")
+}
+
+// TRACED: FD-DATA-010
+model Dispatch {
+  id              String         @id @default(uuid())
+  referenceNumber String         @map("reference_number")
+  pickupAddress   String         @map("pickup_address")
+  deliveryAddress String         @map("delivery_address")
+  status          DispatchStatus @default(PENDING)
+  cost            Decimal        @db.Decimal(12, 2)
+  weight          Decimal        @db.Decimal(12, 2)
+  notes           String?
+  vehicleId       String?        @map("vehicle_id")
+  driverId        String?        @map("driver_id")
+  tenantId        String         @map("tenant_id")
+  scheduledAt     DateTime?      @map("scheduled_at")
+  deliveredAt     DateTime?      @map("delivered_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  vehicle         Vehicle?       @relation(fields: [vehicleId], references: [id])
+  driver          Driver?        @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@map("dispatches")
+}
+
+// TRACED: FD-DATA-011
+model Route {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  status      RouteStatus @default(PLANNED)
+  distance    Decimal     @db.Decimal(12, 2)
+  estimatedTime Int       @map("estimated_time")
+  tenantId    String      @map("tenant_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  stops       RouteStop[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("routes")
+}
+
+// TRACED: FD-DATA-012
+model RouteStop {
+  id        String   @id @default(uuid())
+  address   String
+  sequence  Int
+  latitude  Decimal  @db.Decimal(10, 7)
+  longitude Decimal  @db.Decimal(10, 7)
+  routeId   String   @map("route_id")
+  vehicleId String?  @map("vehicle_id")
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  route     Route    @relation(fields: [routeId], references: [id])
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
+
+  @@index([tenantId])
+  @@index([routeId])
+  @@index([vehicleId])
+  @@map("route_stops")
+}

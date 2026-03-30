@@ -1,0 +1,12 @@
+export declare const APP_VERSION = "1.0.0";
+export declare const BCRYPT_SALT_ROUNDS = 12;
+export declare const MAX_PAGE_SIZE = 100;
+export declare const DEFAULT_PAGE_SIZE = 20;
+export declare const JWT_EXPIRY = "24h";
+export declare const CORRELATION_HEADER = "x-correlation-id";
+export declare const MAX_WIDGETS_PER_DASHBOARD = 20;
+export declare const SYNC_FAILURE_THRESHOLD = 5;
+export { sanitizeLogData } from './log-sanitizer';
+export { getCorrelationId } from './correlation';
+export { validateEnvVars } from './env-validation';
+export { PaginationParams, PaginatedResult } from './pagination';

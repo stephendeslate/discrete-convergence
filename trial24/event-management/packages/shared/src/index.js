@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.JWT_REFRESH_EXPIRY = exports.JWT_ACCESS_EXPIRY = exports.clampPagination = exports.MIN_PAGE = exports.DEFAULT_PAGE_SIZE = exports.MAX_PAGE_SIZE = exports.validateEnvVars = exports.sanitizeLogContext = exports.createCorrelationId = exports.CORRELATION_ID_HEADER = exports.BCRYPT_SALT_ROUNDS = exports.APP_VERSION = void 0;
+exports.APP_VERSION = '0.1.0';
+exports.BCRYPT_SALT_ROUNDS = 12;
+var correlation_1 = require("./correlation");
+Object.defineProperty(exports, "CORRELATION_ID_HEADER", { enumerable: true, get: function () { return correlation_1.CORRELATION_ID_HEADER; } });
+Object.defineProperty(exports, "createCorrelationId", { enumerable: true, get: function () { return correlation_1.createCorrelationId; } });
+var log_sanitizer_1 = require("./log-sanitizer");
+Object.defineProperty(exports, "sanitizeLogContext", { enumerable: true, get: function () { return log_sanitizer_1.sanitizeLogContext; } });
+var env_validation_1 = require("./env-validation");
+Object.defineProperty(exports, "validateEnvVars", { enumerable: true, get: function () { return env_validation_1.validateEnvVars; } });
+var pagination_1 = require("./pagination");
+Object.defineProperty(exports, "MAX_PAGE_SIZE", { enumerable: true, get: function () { return pagination_1.MAX_PAGE_SIZE; } });
+Object.defineProperty(exports, "DEFAULT_PAGE_SIZE", { enumerable: true, get: function () { return pagination_1.DEFAULT_PAGE_SIZE; } });
+Object.defineProperty(exports, "MIN_PAGE", { enumerable: true, get: function () { return pagination_1.MIN_PAGE; } });
+Object.defineProperty(exports, "clampPagination", { enumerable: true, get: function () { return pagination_1.clampPagination; } });
+exports.JWT_ACCESS_EXPIRY = '15m';
+exports.JWT_REFRESH_EXPIRY = '7d';
+//# sourceMappingURL=index.js.map

@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN      @map("ADMIN")
+  DISPATCHER @map("DISPATCHER")
+  VIEWER     @map("VIEWER")
+
+  @@map("user_role")
+}
+
+enum VehicleStatus {
+  AVAILABLE   @map("AVAILABLE")
+  IN_USE      @map("IN_USE")
+  MAINTENANCE @map("MAINTENANCE")
+  RETIRED     @map("RETIRED")
+
+  @@map("vehicle_status")
+}
+
+enum DriverStatus {
+  AVAILABLE   @map("AVAILABLE")
+  ON_ROUTE    @map("ON_ROUTE")
+  OFF_DUTY    @map("OFF_DUTY")
+  SUSPENDED   @map("SUSPENDED")
+
+  @@map("driver_status")
+}
+
+enum RouteStatus {
+  PLANNED    @map("PLANNED")
+  ACTIVE     @map("ACTIVE")
+  COMPLETED  @map("COMPLETED")
+  CANCELLED  @map("CANCELLED")
+
+  @@map("route_status")
+}
+
+enum DispatchStatus {
+  PENDING    @map("PENDING")
+  ASSIGNED   @map("ASSIGNED")
+  IN_TRANSIT @map("IN_TRANSIT")
+  DELIVERED  @map("DELIVERED")
+  FAILED     @map("FAILED")
+
+  @@map("dispatch_status")
+}
+
+enum MaintenanceType {
+  ROUTINE    @map("ROUTINE")
+  REPAIR     @map("REPAIR")
+  INSPECTION @map("INSPECTION")
+  EMERGENCY  @map("EMERGENCY")
+
+  @@map("maintenance_type")
+}
+
+enum MaintenanceStatus {
+  SCHEDULED  @map("SCHEDULED")
+  IN_PROGRESS @map("IN_PROGRESS")
+  COMPLETED  @map("COMPLETED")
+  CANCELLED  @map("CANCELLED")
+
+  @@map("maintenance_status")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(VIEWER)
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Vehicle {
+  id            String        @id @default(uuid())
+  licensePlate  String        @map("license_plate")
+  make          String
+  model         String
+  year          Int
+  status        VehicleStatus @default(AVAILABLE)
+  mileage       Int           @default(0)
+  fuelCapacity  Decimal       @db.Decimal(12, 2) @map("fuel_capacity")
+  tenantId      String        @map("tenant_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  dispatches         Dispatch[]
+  maintenanceRecords MaintenanceRecord[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("vehicles")
+}
+
+model Driver {
+  id           String       @id @default(uuid())
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
+  licenseNumber String      @map("license_number")
+  phone        String
+  status       DriverStatus @default(AVAILABLE)
+  tenantId     String       @map("tenant_id")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  dispatches   Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("drivers")
+}
+
+model Route {
+  id            String      @id @default(uuid())
+  name          String
+  origin        String
+  destination   String
+  distanceKm    Decimal     @db.Decimal(12, 2) @map("distance_km")
+  estimatedTime Int         @map("estimated_time")
+  status        RouteStatus @default(PLANNED)
+  tenantId      String      @map("tenant_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  dispatches    Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("routes")
+}
+
+model Dispatch {
+  id          String         @id @default(uuid())
+  status      DispatchStatus @default(PENDING)
+  priority    Int            @default(1)
+  notes       String?
+  vehicleId   String         @map("vehicle_id")
+  driverId    String         @map("driver_id")
+  routeId     String         @map("route_id")
+  tenantId    String         @map("tenant_id")
+  scheduledAt DateTime?      @map("scheduled_at")
+  completedAt DateTime?      @map("completed_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  vehicle     Vehicle        @relation(fields: [vehicleId], references: [id])
+  driver      Driver         @relation(fields: [driverId], references: [id])
+  route       Route          @relation(fields: [routeId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([routeId])
+  @@map("dispatches")
+}
+
+model MaintenanceRecord {
+  id          String            @id @default(uuid())
+  type        MaintenanceType   @default(ROUTINE)
+  status      MaintenanceStatus @default(SCHEDULED)
+  description String
+  cost        Decimal           @db.Decimal(12, 2)
+  vehicleId   String            @map("vehicle_id")
+  tenantId    String            @map("tenant_id")
+  scheduledAt DateTime          @map("scheduled_at")
+  completedAt DateTime?         @map("completed_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  vehicle     Vehicle           @relation(fields: [vehicleId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([vehicleId])
+  @@map("maintenance_records")
+}

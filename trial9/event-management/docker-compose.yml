@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eventmgr
+      POSTGRES_PASSWORD: eventmgr_pass
+      POSTGRES_DB: event_management
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventmgr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://eventmgr:eventmgr_pass@db:5432/event_management?connection_limit=10
+      JWT_SECRET: production-secret-change-me
+      CORS_ORIGIN: http://localhost:3000
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

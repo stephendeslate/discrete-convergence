@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN    @map("admin")
+  EDITOR   @map("editor")
+  VIEWER   @map("viewer")
+
+  @@map("role")
+}
+
+enum VehicleStatus {
+  ACTIVE      @map("active")
+  INACTIVE    @map("inactive")
+  MAINTENANCE @map("maintenance")
+
+  @@map("vehicle_status")
+}
+
+enum DriverStatus {
+  AVAILABLE @map("available")
+  ON_TRIP   @map("on_trip")
+  OFF_DUTY  @map("off_duty")
+
+  @@map("driver_status")
+}
+
+enum DispatchStatus {
+  PENDING    @map("pending")
+  DISPATCHED @map("dispatched")
+  IN_TRANSIT @map("in_transit")
+  COMPLETED  @map("completed")
+  CANCELLED  @map("cancelled")
+
+  @@map("dispatch_status")
+}
+
+enum MaintenanceType {
+  ROUTINE    @map("routine")
+  REPAIR     @map("repair")
+  INSPECTION @map("inspection")
+
+  @@map("maintenance_type")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String
+  passwordHash String   @map("password_hash")
+  role         Role     @default(VIEWER)
+  companyId    String   @map("company_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([email, companyId])
+  @@index([companyId])
+  @@map("users")
+}
+
+model Vehicle {
+  id           String        @id @default(uuid())
+  vin          String
+  make         String
+  model        String
+  year         Int
+  status       VehicleStatus @default(ACTIVE)
+  licensePlate String        @map("license_plate")
+  companyId    String        @map("company_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  dispatches   Dispatch[]
+  maintenance  Maintenance[]
+
+  @@unique([vin, companyId])
+  @@index([companyId])
+  @@index([companyId, status])
+  @@map("vehicles")
+}
+
+model Driver {
+  id            String       @id @default(uuid())
+  name          String
+  email         String
+  licenseNumber String       @map("license_number")
+  status        DriverStatus @default(AVAILABLE)
+  companyId     String       @map("company_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  dispatches    Dispatch[]
+
+  @@unique([email, companyId])
+  @@index([companyId])
+  @@index([companyId, status])
+  @@map("drivers")
+}
+
+model Route {
+  id               String   @id @default(uuid())
+  name             String
+  origin           String
+  destination      String
+  distanceKm       Decimal  @map("distance_km") @db.Decimal(10, 2)
+  estimatedMinutes Int      @map("estimated_minutes")
+  companyId        String   @map("company_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  dispatches       Dispatch[]
+
+  @@index([companyId])
+  @@map("routes")
+}
+
+model Dispatch {
+  id          String         @id @default(uuid())
+  vehicleId   String         @map("vehicle_id")
+  driverId    String         @map("driver_id")
+  routeId     String         @map("route_id")
+  status      DispatchStatus @default(PENDING)
+  scheduledAt DateTime       @map("scheduled_at")
+  companyId   String         @map("company_id")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  vehicle     Vehicle        @relation(fields: [vehicleId], references: [id])
+  driver      Driver         @relation(fields: [driverId], references: [id])
+  route       Route          @relation(fields: [routeId], references: [id])
+  trips       Trip[]
+
+  @@index([companyId])
+  @@index([companyId, status])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([routeId])
+  @@map("dispatches")
+}
+
+model Trip {
+  id             String    @id @default(uuid())
+  dispatchId     String    @map("dispatch_id")
+  startedAt      DateTime  @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  distanceKm     Decimal?  @map("distance_km") @db.Decimal(10, 2)
+  fuelUsedLiters Decimal?  @map("fuel_used_liters") @db.Decimal(10, 2)
+  notes          String?
+  companyId      String    @map("company_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  dispatch       Dispatch  @relation(fields: [dispatchId], references: [id])
+
+  @@index([companyId])
+  @@index([dispatchId])
+  @@map("trips")
+}
+
+model Maintenance {
+  id            String          @id @default(uuid())
+  vehicleId     String          @map("vehicle_id")
+  type          MaintenanceType
+  description   String
+  scheduledDate DateTime        @map("scheduled_date")
+  completedDate DateTime?       @map("completed_date")
+  cost          Decimal?        @db.Decimal(10, 2)
+  companyId     String          @map("company_id")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  vehicle       Vehicle         @relation(fields: [vehicleId], references: [id])
+
+  @@index([companyId])
+  @@index([vehicleId])
+  @@map("maintenance")
+}
+
+model Zone {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  polygon     Json
+  companyId   String   @map("company_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([companyId])
+  @@map("zones")
+}

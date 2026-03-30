@@ -1,0 +1,349 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN    @map("admin")
+  USER     @map("user")
+  DRIVER   @map("driver")
+  DISPATCHER @map("dispatcher")
+
+  @@map("user_role")
+}
+
+enum VehicleStatus {
+  ACTIVE       @map("active")
+  MAINTENANCE  @map("maintenance")
+  INACTIVE     @map("inactive")
+  RETIRED      @map("retired")
+
+  @@map("vehicle_status")
+}
+
+enum DriverStatus {
+  AVAILABLE    @map("available")
+  ON_TRIP      @map("on_trip")
+  OFF_DUTY     @map("off_duty")
+  SUSPENDED    @map("suspended")
+
+  @@map("driver_status")
+}
+
+enum RouteStatus {
+  DRAFT        @map("draft")
+  ACTIVE       @map("active")
+  COMPLETED    @map("completed")
+  CANCELLED    @map("cancelled")
+
+  @@map("route_status")
+}
+
+enum TripStatus {
+  SCHEDULED    @map("scheduled")
+  IN_PROGRESS  @map("in_progress")
+  COMPLETED    @map("completed")
+  CANCELLED    @map("cancelled")
+
+  @@map("trip_status")
+}
+
+enum DispatchStatus {
+  PENDING      @map("pending")
+  ASSIGNED     @map("assigned")
+  IN_TRANSIT   @map("in_transit")
+  DELIVERED    @map("delivered")
+  FAILED       @map("failed")
+
+  @@map("dispatch_status")
+}
+
+enum AlertSeverity {
+  LOW          @map("low")
+  MEDIUM       @map("medium")
+  HIGH         @map("high")
+  CRITICAL     @map("critical")
+
+  @@map("alert_severity")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  slug      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users              User[]
+  vehicles           Vehicle[]
+  drivers            Driver[]
+  routes             Route[]
+  trips              Trip[]
+  dispatches         Dispatch[]
+  maintenanceRecords MaintenanceRecord[]
+  fuelLogs           FuelLog[]
+  geofences          Geofence[]
+  alerts             Alert[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+  stops              Stop[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  role      UserRole @default(USER)
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Vehicle {
+  id           String        @id @default(uuid())
+  vin          String        @db.VarChar(17)
+  licensePlate String        @map("license_plate") @db.VarChar(20)
+  make         String        @db.VarChar(100)
+  model        String        @db.VarChar(100)
+  year         Int
+  status       VehicleStatus @default(ACTIVE)
+  mileage      Int           @default(0)
+  tenantId     String        @map("tenant_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  tenant             Tenant              @relation(fields: [tenantId], references: [id])
+  trips              Trip[]
+  maintenanceRecords MaintenanceRecord[]
+  fuelLogs           FuelLog[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("vehicles")
+}
+
+model Driver {
+  id            String       @id @default(uuid())
+  name          String       @db.VarChar(255)
+  licenseNumber String       @map("license_number") @db.VarChar(50)
+  phone         String       @db.VarChar(20)
+  status        DriverStatus @default(AVAILABLE)
+  tenantId      String       @map("tenant_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  trips  Trip[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("drivers")
+}
+
+model Route {
+  id          String      @id @default(uuid())
+  name        String      @db.VarChar(255)
+  description String?     @db.Text
+  status      RouteStatus @default(DRAFT)
+  distance    Decimal     @db.Decimal(10, 2)
+  tenantId    String      @map("tenant_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  trips  Trip[]
+  stops  Stop[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("routes")
+}
+
+model Trip {
+  id          String     @id @default(uuid())
+  routeId     String     @map("route_id")
+  vehicleId   String     @map("vehicle_id")
+  driverId    String     @map("driver_id")
+  status      TripStatus @default(SCHEDULED)
+  startTime   DateTime?  @map("start_time")
+  endTime     DateTime?  @map("end_time")
+  tenantId    String     @map("tenant_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+  route      Route      @relation(fields: [routeId], references: [id])
+  vehicle    Vehicle    @relation(fields: [vehicleId], references: [id])
+  driver     Driver     @relation(fields: [driverId], references: [id])
+  dispatches Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("trips")
+}
+
+model Stop {
+  id        String   @id @default(uuid())
+  routeId   String   @map("route_id")
+  name      String   @db.VarChar(255)
+  address   String   @db.VarChar(500)
+  latitude  Decimal  @db.Decimal(10, 7)
+  longitude Decimal  @db.Decimal(10, 7)
+  sequence  Int
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  route  Route  @relation(fields: [routeId], references: [id])
+
+  @@index([tenantId])
+  @@index([routeId])
+  @@map("stops")
+}
+
+model Dispatch {
+  id          String         @id @default(uuid())
+  tripId      String         @map("trip_id")
+  status      DispatchStatus @default(PENDING)
+  notes       String?        @db.Text
+  priority    Int            @default(0)
+  tenantId    String         @map("tenant_id")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  trip   Trip   @relation(fields: [tripId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("dispatches")
+}
+
+model MaintenanceRecord {
+  id          String   @id @default(uuid())
+  vehicleId   String   @map("vehicle_id")
+  description String   @db.Text
+  cost        Decimal  @db.Decimal(12, 2)
+  performedAt DateTime @map("performed_at")
+  tenantId    String   @map("tenant_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@map("maintenance_records")
+}
+
+model FuelLog {
+  id          String   @id @default(uuid())
+  vehicleId   String   @map("vehicle_id")
+  gallons     Decimal  @db.Decimal(8, 3)
+  costPerUnit Decimal  @map("cost_per_unit") @db.Decimal(12, 2)
+  totalCost   Decimal  @map("total_cost") @db.Decimal(12, 2)
+  mileage     Int
+  filledAt    DateTime @map("filled_at")
+  tenantId    String   @map("tenant_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@map("fuel_logs")
+}
+
+model Geofence {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  latitude  Decimal  @db.Decimal(10, 7)
+  longitude Decimal  @db.Decimal(10, 7)
+  radius    Decimal  @db.Decimal(10, 2)
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("geofences")
+}
+
+model Alert {
+  id        String        @id @default(uuid())
+  message   String        @db.Text
+  severity  AlertSeverity @default(LOW)
+  read      Boolean       @default(false)
+  tenantId  String        @map("tenant_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([severity])
+  @@index([tenantId, severity])
+  @@map("alerts")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String   @db.VarChar(255)
+  body      String   @db.Text
+  read      Boolean  @default(false)
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  action    String   @db.VarChar(100)
+  entity    String   @db.VarChar(100)
+  entityId  String   @map("entity_id") @db.VarChar(36)
+  details   String?  @db.Text
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([tenantId, entity])
+  @@map("audit_logs")
+}

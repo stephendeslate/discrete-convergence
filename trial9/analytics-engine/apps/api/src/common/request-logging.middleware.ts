@@ -1,0 +1,31 @@
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import { formatLogEntry } from '@analytics-engine/shared';
+import { PinoLoggerService } from '../monitoring/pino-logger.service';
+
+// TRACED: AE-MON-006
+@Injectable()
+export class RequestLoggingMiddleware implements NestMiddleware {
+  constructor(private readonly logger: PinoLoggerService) {}
+
+  use(req: Request, res: Response, next: NextFunction) {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      const correlationId =
+        (req.headers['x-correlation-id'] as string) ?? 'unknown';
+      this.logger.log(
+        formatLogEntry({
+          level: 'info',
+          message: `${req.method} ${req.url}`,
+          method: req.method,
+          url: req.url,
+          statusCode: res.statusCode,
+          duration,
+          correlationId,
+        }),
+      );
+    });
+    next();
+  }
+}

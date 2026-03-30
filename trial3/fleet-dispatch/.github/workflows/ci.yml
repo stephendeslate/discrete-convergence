@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fleet_test
+          POSTGRES_PASSWORD: fleet_test_password
+          POSTGRES_DB: fleet_dispatch_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fleet_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://fleet_test:fleet_test_password@localhost:5432/fleet_dispatch_test?connection_limit=10
+      JWT_SECRET: ci-test-jwt-secret
+      CORS_ORIGIN: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm turbo run lint
+
+      - name: Typecheck
+        run: pnpm turbo run typecheck
+
+      - name: Build
+        run: pnpm turbo run build
+
+      - name: Test
+        run: pnpm turbo run test
+
+      - name: Migration check
+        run: cd apps/api && npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Security audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true

@@ -1,0 +1,65 @@
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { AuthModule } from './auth/auth.module';
+import { WorkOrderModule } from './work-order/work-order.module';
+import { TechnicianModule } from './technician/technician.module';
+import { InvoiceModule } from './invoice/invoice.module';
+import { CustomerModule } from './customer/customer.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { PrismaService } from './common/prisma.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { GlobalExceptionFilter } from './common/global-exception.filter';
+import { ResponseTimeInterceptor } from './common/response-time.interceptor';
+import { CorrelationIdMiddleware } from './common/correlation-id.middleware';
+import { RequestLoggingMiddleware } from './common/request-logging.middleware';
+import { RequestContextService } from './common/request-context.service';
+
+/**
+ * Root application module.
+ * APP_GUARD: ThrottlerGuard + JwtAuthGuard (global, no per-controller @UseGuards)
+ * APP_FILTER: GlobalExceptionFilter (sanitized errors, correlation IDs)
+ * APP_INTERCEPTOR: ResponseTimeInterceptor (X-Response-Time header)
+ * TRACED:FD-ARCH-001
+ */
+@Module({
+  imports: [
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60000, limit: 100 },
+      { name: 'auth', ttl: 60000, limit: 5 },
+    ]),
+    AuthModule,
+    WorkOrderModule,
+    TechnicianModule,
+    InvoiceModule,
+    CustomerModule,
+    MonitoringModule,
+  ],
+  providers: [
+    PrismaService,
+    RequestContextService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseTimeInterceptor,
+    },
+  ],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(CorrelationIdMiddleware, RequestLoggingMiddleware)
+      .forRoutes('*');
+  }
+}

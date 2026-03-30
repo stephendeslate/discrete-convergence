@@ -1,0 +1,28 @@
+{
+  "name": "fleet-dispatch",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": ">=3.20.0"
+    },
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "@nestjs/core",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

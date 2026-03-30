@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN     @map("admin")
+  ORGANIZER @map("organizer")
+  ATTENDEE  @map("attendee")
+
+  @@map("user_role")
+}
+
+enum EventStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  CANCELLED @map("cancelled")
+
+  @@map("event_status")
+}
+
+enum TicketStatus {
+  AVAILABLE @map("available")
+  SOLD      @map("sold")
+  CANCELLED @map("cancelled")
+
+  @@map("ticket_status")
+}
+
+enum RegistrationStatus {
+  PENDING   @map("pending")
+  CONFIRMED @map("confirmed")
+  CANCELLED @map("cancelled")
+
+  @@map("registration_status")
+}
+
+model User {
+  id           String               @id @default(uuid())
+  email        String
+  passwordHash String               @map("password_hash")
+  role         UserRole             @default(ATTENDEE)
+  tenantId     String               @map("tenant_id")
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @updatedAt @map("updated_at")
+  registrations Registration[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Event {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  startDate   DateTime     @map("start_date")
+  endDate     DateTime     @map("end_date")
+  status      EventStatus  @default(DRAFT)
+  tenantId    String       @map("tenant_id")
+  venueId     String?      @map("venue_id")
+  venue       Venue?       @relation(fields: [venueId], references: [id])
+  tickets     Ticket[]
+  registrations Registration[]
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([venueId])
+  @@map("events")
+}
+
+model Venue {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  capacity  Int
+  tenantId  String   @map("tenant_id")
+  events    Event[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("venues")
+}
+
+model Ticket {
+  id        String       @id @default(uuid())
+  name      String
+  price     Decimal      @db.Decimal(12, 2)
+  quantity  Int
+  sold      Int          @default(0)
+  status    TicketStatus @default(AVAILABLE)
+  eventId   String       @map("event_id")
+  event     Event        @relation(fields: [eventId], references: [id])
+  tenantId  String       @map("tenant_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([eventId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("tickets")
+}
+
+model Registration {
+  id        String             @id @default(uuid())
+  status    RegistrationStatus @default(PENDING)
+  eventId   String             @map("event_id")
+  event     Event              @relation(fields: [eventId], references: [id])
+  userId    String             @map("user_id")
+  user      User               @relation(fields: [userId], references: [id])
+  tenantId  String             @map("tenant_id")
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([tenantId, status])
+  @@map("registrations")
+}

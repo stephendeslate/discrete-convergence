@@ -1,0 +1,328 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantTier {
+  FREE     @map("free")
+  PRO      @map("pro")
+  ENTERPRISE @map("enterprise")
+
+  @@map("tenant_tier")
+}
+
+enum UserRole {
+  ADMIN  @map("admin")
+  USER   @map("user")
+  VIEWER @map("viewer")
+
+  @@map("user_role")
+}
+
+enum DashboardStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  ARCHIVED  @map("archived")
+
+  @@map("dashboard_status")
+}
+
+enum WidgetType {
+  LINE_CHART  @map("line_chart")
+  BAR_CHART   @map("bar_chart")
+  PIE_CHART   @map("pie_chart")
+  AREA_CHART  @map("area_chart")
+  KPI_CARD    @map("kpi_card")
+  TABLE       @map("table")
+  FUNNEL      @map("funnel")
+
+  @@map("widget_type")
+}
+
+enum DataSourceType {
+  REST_API   @map("rest_api")
+  POSTGRESQL @map("postgresql")
+  CSV        @map("csv")
+  WEBHOOK    @map("webhook")
+
+  @@map("data_source_type")
+}
+
+enum SyncStatus {
+  IDLE      @map("idle")
+  RUNNING   @map("running")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+
+  @@map("sync_status")
+}
+
+enum ApiKeyType {
+  ADMIN @map("admin")
+  EMBED @map("embed")
+
+  @@map("api_key_type")
+}
+
+model Tenant {
+  id        String     @id @default(uuid())
+  name      String
+  tier      TenantTier @default(FREE)
+  theme     Json?
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  users       User[]
+  dashboards  Dashboard[]
+  dataSources DataSource[]
+  apiKeys     ApiKey[]
+  auditLogs   AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(USER)
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Dashboard {
+  id          String          @id @default(uuid())
+  title       String
+  description String?
+  status      DashboardStatus @default(DRAFT)
+  tenantId    String          @map("tenant_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  widgets     Widget[]
+  embedConfig EmbedConfig?
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("dashboards")
+}
+
+model Widget {
+  id           String     @id @default(uuid())
+  title        String
+  type         WidgetType
+  config       Json?
+  positionX    Int        @default(0) @map("position_x")
+  positionY    Int        @default(0) @map("position_y")
+  width        Int        @default(1)
+  height       Int        @default(1)
+  dashboardId  String     @map("dashboard_id")
+  dataSourceId String?    @map("data_source_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  dashboard  Dashboard   @relation(fields: [dashboardId], references: [id])
+  dataSource DataSource? @relation(fields: [dataSourceId], references: [id])
+
+  @@index([dashboardId])
+  @@index([dataSourceId])
+  @@map("widgets")
+}
+
+model DataSource {
+  id        String         @id @default(uuid())
+  name      String
+  type      DataSourceType
+  tenantId  String         @map("tenant_id")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  tenant         Tenant            @relation(fields: [tenantId], references: [id])
+  config         DataSourceConfig?
+  fieldMappings  FieldMapping[]
+  syncRuns       SyncRun[]
+  dataPoints     DataPoint[]
+  aggregatedData AggregatedDataPoint[]
+  widgets        Widget[]
+  queryCache     QueryCache[]
+
+  @@index([tenantId])
+  @@index([type])
+  @@index([tenantId, type])
+  @@map("data_sources")
+}
+
+model DataSourceConfig {
+  id              String   @id @default(uuid())
+  configEncrypted String   @map("config_encrypted")
+  transformSteps  Json?    @map("transform_steps")
+  schedule        String?
+  dataSourceId    String   @unique @map("data_source_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@map("data_source_configs")
+}
+
+model FieldMapping {
+  id           String   @id @default(uuid())
+  sourceField  String   @map("source_field")
+  targetField  String   @map("target_field")
+  fieldType    String   @map("field_type")
+  dataSourceId String   @map("data_source_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@index([dataSourceId])
+  @@map("field_mappings")
+}
+
+model SyncRun {
+  id           String     @id @default(uuid())
+  status       SyncStatus @default(IDLE)
+  rowsIngested Int        @default(0) @map("rows_ingested")
+  errorMessage String?    @map("error_message")
+  startedAt    DateTime?  @map("started_at")
+  completedAt  DateTime?  @map("completed_at")
+  dataSourceId String     @map("data_source_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@index([dataSourceId])
+  @@index([status])
+  @@index([dataSourceId, status])
+  @@map("sync_runs")
+}
+
+model DataPoint {
+  id           String   @id @default(uuid())
+  dimensions   Json
+  metrics      Json
+  sourceHash   String   @map("source_hash")
+  dataSourceId String   @map("data_source_id")
+  tenantId     String   @map("tenant_id")
+  ingestedAt   DateTime @default(now()) @map("ingested_at")
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@index([dataSourceId])
+  @@index([tenantId])
+  @@index([sourceHash])
+  @@map("data_points")
+}
+
+model AggregatedDataPoint {
+  id           String   @id @default(uuid())
+  bucket       DateTime
+  granularity  String
+  metrics      Json
+  dataSourceId String   @map("data_source_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@index([dataSourceId])
+  @@index([bucket])
+  @@index([dataSourceId, granularity])
+  @@map("aggregated_data_points")
+}
+
+model EmbedConfig {
+  id             String   @id @default(uuid())
+  allowedOrigins String[] @map("allowed_origins")
+  enabled        Boolean  @default(false)
+  themeOverrides Json?    @map("theme_overrides")
+  dashboardId    String   @unique @map("dashboard_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id])
+
+  @@map("embed_configs")
+}
+
+model QueryCache {
+  id           String   @id @default(uuid())
+  queryHash    String   @map("query_hash")
+  result       Json
+  ttlSeconds   Int      @map("ttl_seconds")
+  cost         Decimal  @db.Decimal(12, 2) @default(0)
+  dataSourceId String   @map("data_source_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at")
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@index([queryHash])
+  @@index([dataSourceId])
+  @@index([expiresAt])
+  @@map("query_caches")
+}
+
+model DeadLetterEvent {
+  id           String   @id @default(uuid())
+  payload      Json
+  errorMessage String   @map("error_message")
+  retryCount   Int      @default(0) @map("retry_count")
+  dataSourceId String   @map("data_source_id")
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([dataSourceId])
+  @@index([tenantId])
+  @@map("dead_letter_events")
+}
+
+model ApiKey {
+  id        String     @id @default(uuid())
+  name      String
+  keyHash   String     @map("key_hash")
+  prefix    String
+  type      ApiKeyType
+  expiresAt DateTime?  @map("expires_at")
+  tenantId  String     @map("tenant_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([prefix])
+  @@index([tenantId, type])
+  @@map("api_keys")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  details   Json?
+  userId    String?  @map("user_id")
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([action])
+  @@index([tenantId, action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

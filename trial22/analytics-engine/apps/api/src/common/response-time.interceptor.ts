@@ -1,0 +1,23 @@
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
+// TRACED: AE-PERF-001
+@Injectable()
+export class ResponseTimeInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const start = Date.now();
+    return next.handle().pipe(
+      tap(() => {
+        const res = context.switchToHttp().getResponse();
+        const duration = Date.now() - start;
+        res.setHeader('X-Response-Time', `${duration}ms`);
+      }),
+    );
+  }
+}

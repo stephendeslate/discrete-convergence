@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  .bg-white {
+    background-color: #1a1a1a;
+  }
+
+  .border-b {
+    border-color: #333;
+  }
+
+  .text-gray-900 {
+    color: #ededed;
+  }
+
+  .text-gray-700 {
+    color: #b0b0b0;
+  }
+
+  .text-gray-500 {
+    color: #888;
+  }
+
+  .bg-gray-50 {
+    background-color: #0a0a0a;
+  }
+
+  .bg-gray-200 {
+    background-color: #333;
+  }
+
+  .border-gray-300 {
+    border-color: #444;
+  }
+
+  .hover\:bg-gray-100:hover {
+    background-color: #222;
+  }
+
+  .hover\:bg-gray-50:hover {
+    background-color: #1a1a1a;
+  }
+}

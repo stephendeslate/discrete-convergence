@@ -1,0 +1,28 @@
+services:
+  api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/analytics_engine_test
+      - JWT_SECRET=test-jwt-secret
+      - JWT_REFRESH_SECRET=test-refresh-secret
+      - CORS_ORIGIN=http://localhost:3000
+      - PORT=3001
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    command: ["pnpm", "turbo", "run", "test"]
+
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=analytics_engine_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5

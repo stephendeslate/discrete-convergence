@@ -1,0 +1,286 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN      @map("admin")
+  DISPATCHER @map("dispatcher")
+  TECHNICIAN @map("technician")
+  CUSTOMER   @map("customer")
+
+  @@map("user_role")
+}
+
+enum WorkOrderStatus {
+  UNASSIGNED  @map("unassigned")
+  ASSIGNED    @map("assigned")
+  EN_ROUTE    @map("en_route")
+  ON_SITE     @map("on_site")
+  IN_PROGRESS @map("in_progress")
+  COMPLETED   @map("completed")
+  INVOICED    @map("invoiced")
+  PAID        @map("paid")
+  CANCELLED   @map("cancelled")
+
+  @@map("work_order_status")
+}
+
+enum InvoiceStatus {
+  DRAFT @map("draft")
+  SENT  @map("sent")
+  PAID  @map("paid")
+  VOID  @map("void")
+
+  @@map("invoice_status")
+}
+
+enum Priority {
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+  URGENT @map("urgent")
+
+  @@map("priority")
+}
+
+enum LineItemType {
+  LABOR    @map("labor")
+  MATERIAL @map("material")
+  FLAT     @map("flat")
+  DISCOUNT @map("discount")
+  TAX      @map("tax")
+
+  @@map("line_item_type")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users       User[]
+  technicians Technician[]
+  customers   Customer[]
+  workOrders  WorkOrder[]
+  routes      Route[]
+  invoices    Invoice[]
+  auditLogs   AuditLog[]
+
+  @@map("companies")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole
+  companyId    String   @map("company_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  company    Company     @relation(fields: [companyId], references: [id])
+  technician Technician?
+
+  @@index([companyId])
+  @@index([role])
+  @@index([companyId, role])
+  @@map("users")
+}
+
+model Technician {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  companyId String   @map("company_id")
+  skills    String[]
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  available Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user       User        @relation(fields: [userId], references: [id])
+  company    Company     @relation(fields: [companyId], references: [id])
+  workOrders WorkOrder[]
+  routes     Route[]
+
+  @@index([companyId])
+  @@index([available])
+  @@index([companyId, available])
+  @@map("technicians")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  address   String?
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  companyId String   @map("company_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  company    Company     @relation(fields: [companyId], references: [id])
+  workOrders WorkOrder[]
+
+  @@index([companyId])
+  @@map("customers")
+}
+
+model WorkOrder {
+  id            String          @id @default(uuid())
+  title         String
+  description   String?
+  status        WorkOrderStatus @default(UNASSIGNED)
+  priority      Priority        @default(MEDIUM)
+  scheduledAt   DateTime?       @map("scheduled_at")
+  completedAt   DateTime?       @map("completed_at")
+  companyId     String          @map("company_id")
+  technicianId  String?         @map("technician_id")
+  customerId    String          @map("customer_id")
+  trackingToken String?         @unique @map("tracking_token")
+  latitude      Decimal?        @db.Decimal(10, 7)
+  longitude     Decimal?        @db.Decimal(10, 7)
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  company       Company                  @relation(fields: [companyId], references: [id])
+  technician    Technician?              @relation(fields: [technicianId], references: [id])
+  customer      Customer                 @relation(fields: [customerId], references: [id])
+  statusHistory WorkOrderStatusHistory[]
+  routeStops    RouteStop[]
+  photos        JobPhoto[]
+  invoice       Invoice?
+
+  @@index([companyId])
+  @@index([status])
+  @@index([companyId, status])
+  @@index([technicianId])
+  @@index([customerId])
+  @@map("work_orders")
+}
+
+model WorkOrderStatusHistory {
+  id          String          @id @default(uuid())
+  workOrderId String          @map("work_order_id")
+  fromStatus  WorkOrderStatus @map("from_status")
+  toStatus    WorkOrderStatus @map("to_status")
+  changedBy   String          @map("changed_by")
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([workOrderId])
+  @@map("work_order_status_history")
+}
+
+model Route {
+  id            String   @id @default(uuid())
+  technicianId  String   @map("technician_id")
+  companyId     String   @map("company_id")
+  date          DateTime @db.Date
+  totalDistance  Decimal  @db.Decimal(12, 2)
+  totalDuration Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  technician Technician  @relation(fields: [technicianId], references: [id])
+  company    Company     @relation(fields: [companyId], references: [id])
+  stops      RouteStop[]
+
+  @@index([companyId])
+  @@index([technicianId])
+  @@index([companyId, technicianId])
+  @@map("routes")
+}
+
+model RouteStop {
+  id          String   @id @default(uuid())
+  routeId     String   @map("route_id")
+  workOrderId String   @map("work_order_id")
+  stopOrder   Int      @map("stop_order")
+  eta         DateTime?
+  legDistance  Decimal? @db.Decimal(12, 2) @map("leg_distance")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  route     Route     @relation(fields: [routeId], references: [id])
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([routeId])
+  @@map("route_stops")
+}
+
+model JobPhoto {
+  id          String   @id @default(uuid())
+  workOrderId String   @map("work_order_id")
+  url         String
+  caption     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([workOrderId])
+  @@map("job_photos")
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  workOrderId String        @unique @map("work_order_id")
+  companyId   String        @map("company_id")
+  status      InvoiceStatus @default(DRAFT)
+  totalAmount Decimal       @db.Decimal(12, 2) @map("total_amount")
+  sentAt      DateTime?     @map("sent_at")
+  paidAt      DateTime?     @map("paid_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  workOrder WorkOrder  @relation(fields: [workOrderId], references: [id])
+  company   Company    @relation(fields: [companyId], references: [id])
+  lineItems LineItem[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([companyId, status])
+  @@map("invoices")
+}
+
+model LineItem {
+  id          String       @id @default(uuid())
+  invoiceId   String       @map("invoice_id")
+  type        LineItemType
+  description String
+  quantity    Decimal      @db.Decimal(12, 2)
+  unitPrice   Decimal      @db.Decimal(12, 2) @map("unit_price")
+  amount      Decimal      @db.Decimal(12, 2)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+  @@map("line_items")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  details   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([entity])
+  @@index([companyId, entity])
+  @@map("audit_logs")
+}

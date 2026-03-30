@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantTier {
+  FREE       @map("free")
+  PRO        @map("pro")
+  ENTERPRISE @map("enterprise")
+
+  @@map("tenant_tier")
+}
+
+enum UserRole {
+  ADMIN  @map("admin")
+  EDITOR @map("editor")
+  VIEWER @map("viewer")
+
+  @@map("user_role")
+}
+
+enum DashboardStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  ARCHIVED  @map("archived")
+
+  @@map("dashboard_status")
+}
+
+enum WidgetType {
+  LINE   @map("line")
+  BAR    @map("bar")
+  PIE    @map("pie")
+  AREA   @map("area")
+  KPI    @map("kpi")
+  TABLE  @map("table")
+  FUNNEL @map("funnel")
+
+  @@map("widget_type")
+}
+
+enum DataSourceType {
+  REST       @map("rest")
+  POSTGRESQL @map("postgresql")
+  CSV        @map("csv")
+  WEBHOOK    @map("webhook")
+
+  @@map("data_source_type")
+}
+
+enum SyncStatus {
+  IDLE      @map("idle")
+  RUNNING   @map("running")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+
+  @@map("sync_status")
+}
+
+model Tenant {
+  id        String     @id @default(uuid())
+  name      String
+  slug      String     @unique
+  theme     Json?
+  tier      TenantTier @default(FREE)
+  billingEmail String?
+  monthlyBudget Decimal? @db.Decimal(12, 2)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  users       User[]
+  dashboards  Dashboard[]
+  widgets     Widget[]
+  dataSources DataSource[]
+  auditLogs   AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(VIEWER)
+  tenantId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  auditLogs AuditLog[]
+
+  @@index([tenantId])
+  @@index([role])
+  @@index([tenantId, role])
+  @@map("users")
+}
+
+model Dashboard {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  status      DashboardStatus @default(DRAFT)
+  tenantId    String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  widgets Widget[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("dashboards")
+}
+
+model Widget {
+  id          String     @id @default(uuid())
+  name        String
+  type        WidgetType
+  config      Json?
+  position    Int?
+  dashboardId String
+  tenantId    String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id])
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([dashboardId])
+  @@index([tenantId, dashboardId])
+  @@map("widgets")
+}
+
+model DataSource {
+  id         String         @id @default(uuid())
+  name       String
+  type       DataSourceType
+  config     Json?
+  status     String         @default("active")
+  lastSyncAt DateTime?
+  tenantId   String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  syncHistory  SyncHistory[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("data_sources")
+}
+
+model SyncHistory {
+  id           String     @id @default(uuid())
+  dataSourceId String
+  status       SyncStatus @default(IDLE)
+  startedAt    DateTime   @default(now())
+  completedAt  DateTime?
+  recordCount  Int?
+  errorMessage String?
+  tenantId     String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@index([dataSourceId])
+  @@index([status])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("sync_histories")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String
+  entityType String
+  entityId   String
+  userId     String?
+  metadata   Json?
+  tenantId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([entityType])
+  @@index([tenantId, entityType])
+  @@index([userId])
+  @@map("audit_logs")
+}

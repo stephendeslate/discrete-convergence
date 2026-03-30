@@ -1,0 +1,26 @@
+// TRACED: FD-AUTH-001
+export const BCRYPT_SALT_ROUNDS = 12;
+
+// TRACED: FD-AUTH-002
+export const ALLOWED_REGISTRATION_ROLES = ['DRIVER', 'DISPATCHER', 'VIEWER'] as const;
+
+// TRACED: FD-PERF-001
+export const MAX_PAGE_SIZE = 100;
+
+// TRACED: FD-PERF-002
+export const DEFAULT_PAGE_SIZE = 20;
+
+// TRACED: FD-INFRA-001
+export const APP_VERSION = '1.0.0';
+
+// TRACED: FD-SEC-001
+export const JWT_EXPIRES_IN = '1h';
+
+// TRACED: FD-SEC-002
+export const THROTTLE_DEFAULT_TTL = 60000;
+
+// TRACED: FD-SEC-003
+export const THROTTLE_DEFAULT_LIMIT = 100;
+
+// TRACED: FD-SEC-004
+export const THROTTLE_AUTH_LIMIT = 5;

@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ORGANIZER
+  ATTENDEE
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CANCELLED
+  WAITLISTED
+  PROMOTED
+}
+
+enum DataSourceType {
+  POSTGRES
+  MYSQL
+  API
+  CSV
+  WEBHOOK
+}
+
+enum FieldType {
+  TEXT
+  EMAIL
+  PHONE
+  SELECT
+  CHECKBOX
+}
+
+enum DashboardStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  tier      String   @default("FREE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  events        Event[]
+  venues        Venue[]
+  registrations Registration[]
+  dataSources   DataSource[]
+  dashboards    Dashboard[]
+  auditLogs     AuditLog[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  password       String
+  name           String
+  role           UserRole
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  auditLogs    AuditLog[]
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+model Event {
+  id             String      @id @default(uuid())
+  name           String
+  description    String?
+  slug           String
+  startDate      DateTime
+  endDate        DateTime
+  status         EventStatus @default(DRAFT)
+  organizationId String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization  Organization   @relation(fields: [organizationId], references: [id])
+  ticketTypes   TicketType[]
+  registrations Registration[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@unique([organizationId, slug])
+  @@map("events")
+}
+
+model Venue {
+  id             String   @id @default(uuid())
+  name           String
+  address        String?
+  capacity       Int
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@map("venues")
+}
+
+model TicketType {
+  id        String   @id @default(uuid())
+  name      String
+  price     Decimal  @db.Decimal(12, 2)
+  quota     Int
+  eventId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event         Event          @relation(fields: [eventId], references: [id])
+  registrations Registration[]
+
+  @@index([eventId])
+  @@map("ticket_types")
+}
+
+model Registration {
+  id             String             @id @default(uuid())
+  attendeeName   String
+  attendeeEmail  String
+  status         RegistrationStatus @default(PENDING)
+  eventId        String
+  ticketTypeId   String
+  organizationId String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  event        Event        @relation(fields: [eventId], references: [id])
+  ticketType   TicketType   @relation(fields: [ticketTypeId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  checkIns     CheckIn[]
+
+  @@index([eventId])
+  @@index([organizationId])
+  @@map("registrations")
+}
+
+model CheckIn {
+  id             String   @id @default(uuid())
+  registrationId String
+  checkedInAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  registration Registration @relation(fields: [registrationId], references: [id])
+
+  @@index([registrationId])
+  @@map("check_ins")
+}
+
+model SyncHistory {
+  id               String   @id @default(uuid())
+  dataSourceId     String
+  status           String   @default("SUCCESS")
+  errorMessage     String?
+  recordsProcessed Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+
+  @@index([dataSourceId])
+  @@map("sync_history")
+}
+
+model DataSource {
+  id             String         @id @default(uuid())
+  name           String
+  type           DataSourceType
+  config         Json?
+  status         String         @default("active")
+  lastSyncAt     DateTime?
+  organizationId String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  syncHistory  SyncHistory[]
+
+  @@index([organizationId])
+  @@map("data_sources")
+}
+
+model Dashboard {
+  id             String          @id @default(uuid())
+  name           String
+  description    String?
+  status         DashboardStatus @default(DRAFT)
+  organizationId String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  widgets      Widget[]
+
+  @@index([organizationId])
+  @@map("dashboards")
+}
+
+model Widget {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  config      Json?
+  dashboardId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dashboard Dashboard @relation(fields: [dashboardId], references: [id])
+
+  @@index([dashboardId])
+  @@map("widgets")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  action         String
+  entityType     String
+  entityId       String
+  metadata       Json?
+  userId         String
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

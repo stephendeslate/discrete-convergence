@@ -1,0 +1,15 @@
+node_modules
+.git
+.github
+dist
+coverage
+*.md
+!README.md
+.env
+.env.*
+!.env.example
+docker-compose*.yml
+Dockerfile
+.dockerignore
+.turbo
+.next

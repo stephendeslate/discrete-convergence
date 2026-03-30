@@ -1,0 +1,546 @@
+[
+  {
+    "dimension": "CO-CE",
+    "name": "Co-existence",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:19Z"
+  },
+  {
+    "dimension": "CO-IO",
+    "name": "Interoperability",
+    "score": 10,
+    "per_project": {
+      "analytics-engine": 10,
+      "event-management": 10,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 10,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=10, event-management=10, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:19Z"
+  },
+  {
+    "dimension": "FL-AD",
+    "name": "Adaptability",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 7,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=7, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:19Z"
+  },
+  {
+    "dimension": "FL-IN",
+    "name": "Installability",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:19Z"
+  },
+  {
+    "dimension": "FL-RP",
+    "name": "Replaceability",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 10,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=10, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:19Z"
+  },
+  {
+    "dimension": "FS-AP",
+    "name": "Functional Appropriateness",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 7,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=7, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:19Z"
+  },
+  {
+    "dimension": "FS-CO",
+    "name": "Functional Completeness",
+    "score": 2,
+    "per_project": {
+      "analytics-engine": 2,
+      "event-management": 2,
+      "fleet-dispatch": 2
+    },
+    "metrics": {
+      "min_score": 2,
+      "max_score": 2,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=2, event-management=2, fleet-dispatch=2",
+    "scored_at": "2026-03-27T04:40:20Z"
+  },
+  {
+    "dimension": "FS-CR",
+    "name": "Functional Correctness",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 7,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 7,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=7, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:27Z"
+  },
+  {
+    "dimension": "IC-AR",
+    "name": "Appropriateness Recognizability",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 7,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 7,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=7, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:27Z"
+  },
+  {
+    "dimension": "IC-OP",
+    "name": "Operability",
+    "score": 3,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 3
+    },
+    "metrics": {
+      "min_score": 3,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=3",
+    "scored_at": "2026-03-27T04:40:27Z"
+  },
+  {
+    "dimension": "IC-SD",
+    "name": "Self-Descriptiveness",
+    "score": 3,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 3,
+      "fleet-dispatch": 3
+    },
+    "metrics": {
+      "min_score": 3,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=3, fleet-dispatch=3",
+    "scored_at": "2026-03-27T04:40:28Z"
+  },
+  {
+    "dimension": "IC-UA",
+    "name": "User Assistance",
+    "score": 2,
+    "per_project": {
+      "analytics-engine": 2,
+      "event-management": 4,
+      "fleet-dispatch": 4
+    },
+    "metrics": {
+      "min_score": 2,
+      "max_score": 4,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=2, event-management=4, fleet-dispatch=4",
+    "scored_at": "2026-03-27T04:40:28Z"
+  },
+  {
+    "dimension": "IC-UE",
+    "name": "User Engagement",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:28Z"
+  },
+  {
+    "dimension": "MA-AN",
+    "name": "Analysability",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 10,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=10, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:46Z"
+  },
+  {
+    "dimension": "MA-MD",
+    "name": "Modifiability",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 10,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=10, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:46Z"
+  },
+  {
+    "dimension": "MA-MO",
+    "name": "Modularity",
+    "score": 8,
+    "per_project": {
+      "analytics-engine": 8,
+      "event-management": 8,
+      "fleet-dispatch": 8
+    },
+    "metrics": {
+      "min_score": 8,
+      "max_score": 8,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=8, event-management=8, fleet-dispatch=8",
+    "scored_at": "2026-03-27T04:40:46Z"
+  },
+  {
+    "dimension": "MA-RE",
+    "name": "Reusability",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 7,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 7,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=7, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:47Z"
+  },
+  {
+    "dimension": "MA-TE",
+    "name": "Testability",
+    "score": 10,
+    "per_project": {
+      "analytics-engine": 10,
+      "event-management": 10,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 10,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=10, event-management=10, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:47Z"
+  },
+  {
+    "dimension": "RE-AV",
+    "name": "Availability",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:47Z"
+  },
+  {
+    "dimension": "RE-FL",
+    "name": "Faultlessness",
+    "score": 10,
+    "per_project": {
+      "analytics-engine": 10,
+      "event-management": 10,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 10,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=10, event-management=10, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:53Z"
+  },
+  {
+    "dimension": "RE-FT",
+    "name": "Fault Tolerance",
+    "score": 3,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 3,
+      "fleet-dispatch": 3
+    },
+    "metrics": {
+      "min_score": 3,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=3, fleet-dispatch=3",
+    "scored_at": "2026-03-27T04:40:53Z"
+  },
+  {
+    "dimension": "RE-RC",
+    "name": "Recoverability",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:53Z"
+  },
+  {
+    "dimension": "SA-FS",
+    "name": "Fail Safe",
+    "score": 3,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 3,
+      "fleet-dispatch": 3
+    },
+    "metrics": {
+      "min_score": 3,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=3, fleet-dispatch=3",
+    "scored_at": "2026-03-27T04:40:53Z"
+  },
+  {
+    "dimension": "SA-HW",
+    "name": "Hazard Warning",
+    "score": 4,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 4,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 4,
+      "max_score": 7,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=4, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:53Z"
+  },
+  {
+    "dimension": "SA-OC",
+    "name": "Operational Constraint",
+    "score": 4,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 4,
+      "fleet-dispatch": 4
+    },
+    "metrics": {
+      "min_score": 4,
+      "max_score": 7,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=4, fleet-dispatch=4",
+    "scored_at": "2026-03-27T04:40:53Z"
+  },
+  {
+    "dimension": "SA-RI",
+    "name": "Risk Identification",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 7,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 7,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=7, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:54Z"
+  },
+  {
+    "dimension": "SA-SI",
+    "name": "Safe Integration",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:55Z"
+  },
+  {
+    "dimension": "SE-AC",
+    "name": "Accountability",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 7,
+      "fleet-dispatch": 7
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 7,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=7, fleet-dispatch=7",
+    "scored_at": "2026-03-27T04:40:55Z"
+  },
+  {
+    "dimension": "SE-CF",
+    "name": "Confidentiality",
+    "score": 10,
+    "per_project": {
+      "analytics-engine": 10,
+      "event-management": 10,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 10,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=10, event-management=10, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:55Z"
+  },
+  {
+    "dimension": "SE-IG",
+    "name": "Integrity",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:55Z"
+  },
+  {
+    "dimension": "SE-NR",
+    "name": "Non-Repudiation",
+    "score": 7,
+    "per_project": {
+      "analytics-engine": 7,
+      "event-management": 7,
+      "fleet-dispatch": 10
+    },
+    "metrics": {
+      "min_score": 7,
+      "max_score": 10,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=7, event-management=7, fleet-dispatch=10",
+    "scored_at": "2026-03-27T04:40:55Z"
+  },
+  {
+    "dimension": "SE-RS",
+    "name": "Resistance",
+    "score": 5,
+    "per_project": {
+      "analytics-engine": 5,
+      "event-management": 5,
+      "fleet-dispatch": 5
+    },
+    "metrics": {
+      "min_score": 5,
+      "max_score": 5,
+      "projects_scored": 3
+    },
+    "details": "Min across projects. Per-project: analytics-engine=5, event-management=5, fleet-dispatch=5",
+    "scored_at": "2026-03-27T04:40:56Z"
+  }
+]

@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN  @map("admin")
+  VIEWER @map("viewer")
+
+  @@map("user_role")
+}
+
+enum EventStatus {
+  DRAFT      @map("draft")
+  PUBLISHED  @map("published")
+  CANCELLED  @map("cancelled")
+  COMPLETED  @map("completed")
+
+  @@map("event_status")
+}
+
+enum RegistrationStatus {
+  PENDING    @map("pending")
+  CONFIRMED  @map("confirmed")
+  CANCELLED  @map("cancelled")
+  WAITLISTED @map("waitlisted")
+
+  @@map("registration_status")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(VIEWER)
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Event {
+  id            String        @id @default(uuid())
+  title         String
+  description   String?
+  startDate     DateTime      @map("start_date")
+  endDate       DateTime      @map("end_date")
+  status        EventStatus   @default(DRAFT)
+  maxAttendees  Int           @map("max_attendees")
+  ticketPrice   Decimal       @db.Decimal(12, 2) @map("ticket_price")
+  tenantId      String        @map("tenant_id")
+  venueId       String        @map("venue_id")
+  venue         Venue         @relation(fields: [venueId], references: [id])
+  registrations Registration[]
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([venueId])
+  @@map("events")
+}
+
+model Venue {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  city      String
+  capacity  Int
+  tenantId  String   @map("tenant_id")
+  events    Event[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("venues")
+}
+
+model Attendee {
+  id            String         @id @default(uuid())
+  firstName     String         @map("first_name")
+  lastName      String         @map("last_name")
+  email         String
+  phone         String?
+  tenantId      String         @map("tenant_id")
+  registrations Registration[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("attendees")
+}
+
+model Registration {
+  id         String             @id @default(uuid())
+  status     RegistrationStatus @default(PENDING)
+  eventId    String             @map("event_id")
+  attendeeId String             @map("attendee_id")
+  tenantId   String             @map("tenant_id")
+  event      Event              @relation(fields: [eventId], references: [id])
+  attendee   Attendee           @relation(fields: [attendeeId], references: [id])
+  createdAt  DateTime           @default(now()) @map("created_at")
+  updatedAt  DateTime           @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([eventId])
+  @@index([attendeeId])
+  @@unique([eventId, attendeeId])
+  @@map("registrations")
+}

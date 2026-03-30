@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN      @map("admin")
+  VIEWER     @map("viewer")
+  DISPATCHER @map("dispatcher")
+
+  @@map("user_role")
+}
+
+enum VehicleStatus {
+  AVAILABLE   @map("available")
+  IN_USE      @map("in_use")
+  MAINTENANCE @map("maintenance")
+  RETIRED     @map("retired")
+
+  @@map("vehicle_status")
+}
+
+enum DispatchStatus {
+  PENDING    @map("pending")
+  ASSIGNED   @map("assigned")
+  IN_TRANSIT @map("in_transit")
+  COMPLETED  @map("completed")
+  CANCELLED  @map("cancelled")
+
+  @@map("dispatch_status")
+}
+
+enum RouteStatus {
+  DRAFT     @map("draft")
+  ACTIVE    @map("active")
+  COMPLETED @map("completed")
+  ARCHIVED  @map("archived")
+
+  @@map("route_status")
+}
+
+enum DriverStatus {
+  AVAILABLE  @map("available")
+  ON_DUTY    @map("on_duty")
+  OFF_DUTY   @map("off_duty")
+  SUSPENDED  @map("suspended")
+
+  @@map("driver_status")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(VIEWER)
+  tenantId  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Vehicle {
+  id           String        @id @default(uuid())
+  name         String
+  licensePlate String        @map("license_plate")
+  make         String
+  model        String
+  year         Int
+  status       VehicleStatus @default(AVAILABLE)
+  mileage      Decimal       @db.Decimal(12, 2)
+  costPerMile  Decimal       @map("cost_per_mile") @db.Decimal(12, 2)
+  tenantId     String
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  dispatches   Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("vehicles")
+}
+
+model Route {
+  id          String      @id @default(uuid())
+  name        String
+  origin      String
+  destination String
+  distance    Decimal     @db.Decimal(12, 2)
+  estimatedTime Int       @map("estimated_time")
+  status      RouteStatus @default(DRAFT)
+  tenantId    String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  dispatches  Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("routes")
+}
+
+model Driver {
+  id           String       @id @default(uuid())
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
+  email        String
+  licenseNumber String      @map("license_number")
+  phone        String
+  status       DriverStatus @default(AVAILABLE)
+  tenantId     String
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  dispatches   Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("drivers")
+}
+
+model Dispatch {
+  id          String         @id @default(uuid())
+  vehicleId   String         @map("vehicle_id")
+  routeId     String         @map("route_id")
+  driverId    String         @map("driver_id")
+  status      DispatchStatus @default(PENDING)
+  notes       String?
+  scheduledAt DateTime       @map("scheduled_at")
+  completedAt DateTime?      @map("completed_at")
+  cost        Decimal?       @db.Decimal(12, 2)
+  tenantId    String
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  route   Route   @relation(fields: [routeId], references: [id])
+  driver  Driver  @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([vehicleId])
+  @@index([routeId])
+  @@index([driverId])
+  @@map("dispatches")
+}

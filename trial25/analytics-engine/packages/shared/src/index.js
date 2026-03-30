@@ -1,0 +1,20 @@
+"use strict";
+// TRACED:AE-SHARED-001 — Shared package barrel exports
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.clampPagination = exports.validateEnvVars = exports.sanitizeLogContext = exports.createCorrelationId = exports.JWT_REFRESH_EXPIRY = exports.JWT_ACCESS_EXPIRY = exports.CORRELATION_ID_HEADER = exports.MIN_PAGE = exports.DEFAULT_PAGE_SIZE = exports.MAX_PAGE_SIZE = exports.BCRYPT_SALT_ROUNDS = exports.APP_VERSION = void 0;
+exports.APP_VERSION = '1.0.0';
+exports.BCRYPT_SALT_ROUNDS = 12;
+exports.MAX_PAGE_SIZE = 100;
+exports.DEFAULT_PAGE_SIZE = 20;
+exports.MIN_PAGE = 1;
+exports.CORRELATION_ID_HEADER = 'x-correlation-id';
+exports.JWT_ACCESS_EXPIRY = '15m';
+exports.JWT_REFRESH_EXPIRY = '7d';
+var correlation_1 = require("./correlation");
+Object.defineProperty(exports, "createCorrelationId", { enumerable: true, get: function () { return correlation_1.createCorrelationId; } });
+var log_sanitizer_1 = require("./log-sanitizer");
+Object.defineProperty(exports, "sanitizeLogContext", { enumerable: true, get: function () { return log_sanitizer_1.sanitizeLogContext; } });
+var env_validation_1 = require("./env-validation");
+Object.defineProperty(exports, "validateEnvVars", { enumerable: true, get: function () { return env_validation_1.validateEnvVars; } });
+var pagination_1 = require("./pagination");
+Object.defineProperty(exports, "clampPagination", { enumerable: true, get: function () { return pagination_1.clampPagination; } });

@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN    @map("admin")
+  USER     @map("user")
+  VIEWER   @map("viewer")
+
+  @@map("role")
+}
+
+enum TenantTier {
+  FREE       @map("free")
+  PRO        @map("pro")
+  ENTERPRISE @map("enterprise")
+
+  @@map("tenant_tier")
+}
+
+enum DashboardStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  ARCHIVED  @map("archived")
+
+  @@map("dashboard_status")
+}
+
+enum WidgetType {
+  LINE_CHART  @map("line_chart")
+  BAR_CHART   @map("bar_chart")
+  PIE_CHART   @map("pie_chart")
+  AREA_CHART  @map("area_chart")
+  KPI_CARD    @map("kpi_card")
+  TABLE       @map("table")
+  FUNNEL      @map("funnel")
+
+  @@map("widget_type")
+}
+
+enum ConnectorType {
+  REST_API   @map("rest_api")
+  POSTGRESQL @map("postgresql")
+  CSV        @map("csv")
+  WEBHOOK    @map("webhook")
+
+  @@map("connector_type")
+}
+
+enum SyncStatus {
+  IDLE      @map("idle")
+  RUNNING   @map("running")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+
+  @@map("sync_status")
+}
+
+model Tenant {
+  id        String     @id @default(uuid())
+  name      String
+  tier      TenantTier @default(FREE)
+  theme     Json?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  users       User[]
+  dashboards  Dashboard[]
+  dataSources DataSource[]
+  apiKeys     ApiKey[]
+  auditLogs   AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Dashboard {
+  id       String          @id @default(uuid())
+  title    String
+  status   DashboardStatus @default(DRAFT)
+  tenantId String
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  widgets     Widget[]
+  embedConfig EmbedConfig?
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("dashboards")
+}
+
+model Widget {
+  id          String     @id @default(uuid())
+  title       String
+  type        WidgetType
+  config      Json
+  position    Json
+  dashboardId String
+  dashboard   Dashboard  @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  dataSourceId String?
+  dataSource   DataSource? @relation(fields: [dataSourceId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([dashboardId])
+  @@map("widgets")
+}
+
+model DataSource {
+  id              String        @id @default(uuid())
+  name            String
+  type            ConnectorType
+  configEncrypted String
+  scheduleMinutes Int?
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  failureCount    Int           @default(0)
+  paused          Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  widgets   Widget[]
+  syncRuns  SyncRun[]
+  fieldMappings FieldMapping[]
+
+  @@index([tenantId])
+  @@index([tenantId, type])
+  @@map("data_sources")
+}
+
+model FieldMapping {
+  id           String     @id @default(uuid())
+  sourceField  String
+  targetField  String
+  fieldType    String
+  dataSourceId String
+  dataSource   DataSource @relation(fields: [dataSourceId], references: [id], onDelete: Cascade)
+
+  @@index([dataSourceId])
+  @@map("field_mappings")
+}
+
+model SyncRun {
+  id           String     @id @default(uuid())
+  status       SyncStatus @default(IDLE)
+  rowsIngested Int        @default(0)
+  errorMessage String?
+  startedAt    DateTime   @default(now())
+  completedAt  DateTime?
+  dataSourceId String
+  dataSource   DataSource @relation(fields: [dataSourceId], references: [id], onDelete: Cascade)
+
+  @@index([dataSourceId])
+  @@index([status])
+  @@index([dataSourceId, status])
+  @@map("sync_runs")
+}
+
+model DataPoint {
+  id           String   @id @default(uuid())
+  dimensions   Json
+  metrics      Json
+  sourceHash   String
+  ingestedAt   DateTime @default(now())
+  dataSourceId String
+  tenantId     String
+
+  @@unique([dataSourceId, sourceHash])
+  @@index([tenantId])
+  @@index([dataSourceId])
+  @@map("data_points")
+}
+
+model AggregatedDataPoint {
+  id           String   @id @default(uuid())
+  bucket       DateTime
+  granularity  String
+  dimensions   Json
+  metrics      Json
+  dataSourceId String
+  tenantId     String
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([dataSourceId, bucket])
+  @@map("aggregated_data_points")
+}
+
+model EmbedConfig {
+  id             String   @id @default(uuid())
+  dashboardId    String   @unique
+  dashboard      Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  allowedOrigins String[]
+  enabled        Boolean  @default(false)
+  themeOverrides Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("embed_configs")
+}
+
+model QueryCache {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  ttlSeconds Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@map("query_cache")
+}
+
+model DeadLetterEvent {
+  id           String   @id @default(uuid())
+  payload      Json
+  errorMessage String
+  dataSourceId String
+  tenantId     String
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([dataSourceId])
+  @@map("dead_letter_events")
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  prefix    String
+  hash      String
+  name      String
+  type      String
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([prefix])
+  @@map("api_keys")
+}
+
+model AuditLog {
+  id       String   @id @default(uuid())
+  action   String
+  entity   String
+  entityId String?
+  details  Json?
+  userId   String?
+  tenantId String
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, action])
+  @@map("audit_logs")
+}

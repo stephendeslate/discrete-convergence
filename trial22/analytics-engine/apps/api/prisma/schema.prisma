@@ -1,0 +1,323 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN    @map("admin")
+  USER     @map("user")
+  VIEWER   @map("viewer")
+  EDITOR   @map("editor")
+
+  @@map("user_role")
+}
+
+enum DashboardStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  ARCHIVED  @map("archived")
+
+  @@map("dashboard_status")
+}
+
+enum WidgetType {
+  LINE_CHART  @map("line_chart")
+  BAR_CHART   @map("bar_chart")
+  PIE_CHART   @map("pie_chart")
+  TABLE       @map("table")
+  KPI         @map("kpi")
+
+  @@map("widget_type")
+}
+
+enum AlertSeverity {
+  LOW      @map("low")
+  MEDIUM   @map("medium")
+  HIGH     @map("high")
+  CRITICAL @map("critical")
+
+  @@map("alert_severity")
+}
+
+enum ScheduleFrequency {
+  HOURLY  @map("hourly")
+  DAILY   @map("daily")
+  WEEKLY  @map("weekly")
+  MONTHLY @map("monthly")
+
+  @@map("schedule_frequency")
+}
+
+enum ScheduleRunStatus {
+  PENDING   @map("pending")
+  RUNNING   @map("running")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+
+  @@map("schedule_run_status")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  slug      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users       User[]
+  dashboards  Dashboard[]
+  dataSources DataSource[]
+  widgets     Widget[]
+  dataPoints  DataPoint[]
+  auditLogs   AuditLog[]
+  embedTokens EmbedToken[]
+  alerts      Alert[]
+  alertRules  AlertRule[]
+  schedules   Schedule[]
+  apiKeys     ApiKey[]
+  notifications Notification[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  role      UserRole @default(USER)
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  dashboards    Dashboard[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Dashboard {
+  id          String          @id @default(uuid())
+  title       String          @db.VarChar(255)
+  description String?         @db.Text
+  status      DashboardStatus @default(DRAFT)
+  tenantId    String          @map("tenant_id")
+  userId      String          @map("user_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  widgets Widget[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("dashboards")
+}
+
+model Widget {
+  id           String     @id @default(uuid())
+  title        String     @db.VarChar(255)
+  type         WidgetType
+  config       String     @db.Text
+  dashboardId  String     @map("dashboard_id")
+  dataSourceId String     @map("data_source_id")
+  tenantId     String     @map("tenant_id")
+  positionX    Int        @default(0) @map("position_x")
+  positionY    Int        @default(0) @map("position_y")
+  width        Int        @default(6)
+  height       Int        @default(4)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  dashboard  Dashboard  @relation(fields: [dashboardId], references: [id])
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([dashboardId])
+  @@map("widgets")
+}
+
+model DataSource {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(255)
+  type         String   @db.VarChar(50)
+  connectionString String @map("connection_string") @db.Text
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id])
+  widgets    Widget[]
+  dataPoints DataPoint[]
+
+  @@index([tenantId])
+  @@map("data_sources")
+}
+
+model DataPoint {
+  id           String   @id @default(uuid())
+  value        Decimal  @db.Decimal(12, 2)
+  label        String   @db.VarChar(255)
+  timestamp    DateTime
+  dataSourceId String   @map("data_source_id")
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  dataSource DataSource @relation(fields: [dataSourceId], references: [id])
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([dataSourceId])
+  @@map("data_points")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String   @db.VarChar(100)
+  entity    String   @db.VarChar(100)
+  entityId  String   @map("entity_id") @db.VarChar(36)
+  details   String?  @db.Text
+  userId    String   @map("user_id")
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+model EmbedToken {
+  id          String   @id @default(uuid())
+  token       String   @unique @db.VarChar(255)
+  dashboardId String   @map("dashboard_id") @db.VarChar(36)
+  tenantId    String   @map("tenant_id")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("embed_tokens")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @db.VarChar(512)
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Alert {
+  id        String        @id @default(uuid())
+  title     String        @db.VarChar(255)
+  message   String        @db.Text
+  severity  AlertSeverity
+  resolved  Boolean       @default(false)
+  tenantId  String        @map("tenant_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, severity])
+  @@map("alerts")
+}
+
+model AlertRule {
+  id        String        @id @default(uuid())
+  name      String        @db.VarChar(255)
+  condition String        @db.Text
+  threshold Decimal       @db.Decimal(12, 2)
+  severity  AlertSeverity
+  enabled   Boolean       @default(true)
+  tenantId  String        @map("tenant_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("alert_rules")
+}
+
+model Schedule {
+  id        String            @id @default(uuid())
+  name      String            @db.VarChar(255)
+  frequency ScheduleFrequency
+  enabled   Boolean           @default(true)
+  tenantId  String            @map("tenant_id")
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id])
+  runs   ScheduleRun[]
+
+  @@index([tenantId])
+  @@map("schedules")
+}
+
+model ScheduleRun {
+  id         String           @id @default(uuid())
+  status     ScheduleRunStatus @default(PENDING)
+  scheduleId String           @map("schedule_id")
+  startedAt  DateTime         @default(now()) @map("started_at")
+  finishedAt DateTime?        @map("finished_at")
+  error      String?          @db.Text
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@index([scheduleId])
+  @@map("schedule_runs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String   @db.VarChar(255)
+  body      String   @db.Text
+  read      Boolean  @default(false)
+  userId    String   @map("user_id")
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("notifications")
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  key       String   @unique @db.VarChar(255)
+  tenantId  String   @map("tenant_id")
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("api_keys")
+}

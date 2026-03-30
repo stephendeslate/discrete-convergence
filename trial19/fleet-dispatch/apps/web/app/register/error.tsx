@@ -1,0 +1,36 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+
+export default function RegisterError({
+  error: _error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
+  return (
+    <div role="alert" className="max-w-md mx-auto py-12">
+      <h2
+        ref={headingRef}
+        tabIndex={-1}
+        className="text-2xl font-bold text-red-600 mb-4 outline-none"
+      >
+        Registration Error
+      </h2>
+      <p className="mb-4">Something went wrong during registration. Please try again.</p>
+      <button
+        onClick={reset}
+        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}

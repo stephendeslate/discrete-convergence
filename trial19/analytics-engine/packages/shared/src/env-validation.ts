@@ -1,0 +1,12 @@
+// TRACED: AE-INFRA-003
+export function validateEnvVars(required: string[]): void {
+  const missing: string[] = [];
+  for (const key of required) {
+    if (!process.env[key]) {
+      missing.push(key);
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+}

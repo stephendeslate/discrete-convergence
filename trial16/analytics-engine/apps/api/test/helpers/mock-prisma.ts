@@ -1,0 +1,52 @@
+import { PrismaService } from '../../src/infra/prisma.service';
+
+export const mockPrismaService = {
+  $connect: jest.fn(),
+  $disconnect: jest.fn(),
+  $queryRaw: jest.fn().mockResolvedValue([{ result: 1 }]),
+  $executeRaw: jest.fn().mockResolvedValue(1),
+  onModuleInit: jest.fn(),
+  onModuleDestroy: jest.fn(),
+  user: {
+    findFirst: jest.fn().mockResolvedValue(null),
+    findUnique: jest.fn().mockResolvedValue(null),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    count: jest.fn().mockResolvedValue(0),
+  },
+  dashboard: {
+    create: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    findFirst: jest.fn().mockResolvedValue(null),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
+  },
+  widget: {
+    create: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    findFirst: jest.fn().mockResolvedValue(null),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
+  },
+  dataSource: {
+    create: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    findFirst: jest.fn().mockResolvedValue(null),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
+  },
+  tenant: {
+    create: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    findFirst: jest.fn().mockResolvedValue(null),
+    findUnique: jest.fn().mockResolvedValue(null),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
+  },
+} as unknown as PrismaService;

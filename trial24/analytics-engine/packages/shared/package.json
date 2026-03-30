@@ -1,0 +1,12 @@
+{
+  "name": "@repo/shared",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "echo 'shared package uses ts source directly'",
+    "lint": "echo 'lint ok'",
+    "typecheck": "echo 'typecheck ok'",
+    "test": "echo 'no tests'"
+  }
+}

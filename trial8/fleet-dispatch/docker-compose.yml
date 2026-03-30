@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fleet
+      POSTGRES_PASSWORD: fleet_password
+      POSTGRES_DB: fleet_dispatch
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fleet -d fleet_dispatch"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://fleet:fleet_password@postgres:5432/fleet_dispatch?connection_limit=10
+      JWT_SECRET: change-me-in-production-minimum-32-chars
+      CORS_ORIGIN: http://localhost:3000
+      PORT: "3001"
+      NODE_ENV: production
+      APP_VERSION: "1.0.0"
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:3001
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

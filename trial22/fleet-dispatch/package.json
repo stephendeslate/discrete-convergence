@@ -1,0 +1,21 @@
+{
+  "name": "fleet-dispatch",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "autocannon": "^7.15.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": ">=3.20.0",
+      "picomatch": ">=4.0.4"
+    }
+  }
+}

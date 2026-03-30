@@ -1,0 +1,141 @@
+// Prisma schema for Analytics Engine
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN  @map("admin")
+  EDITOR @map("editor")
+  VIEWER @map("viewer")
+
+  @@map("role")
+}
+
+enum SyncStatus {
+  PENDING    @map("pending")
+  RUNNING    @map("running")
+  COMPLETED  @map("completed")
+  FAILED     @map("failed")
+
+  @@map("sync_status")
+}
+
+enum AuditAction {
+  CREATE @map("create")
+  UPDATE @map("update")
+  DELETE @map("delete")
+  LOGIN  @map("login")
+  EXPORT @map("export")
+
+  @@map("audit_action")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(VIEWER)
+  tenantId     String   @map("tenant_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  dashboards   Dashboard[]
+  auditLogs    AuditLog[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Dashboard {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  isPublic    Boolean  @default(false) @map("is_public")
+  tenantId    String   @map("tenant_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  widgets     Widget[]
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("dashboards")
+}
+
+model Widget {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(255)
+  type        String   @db.VarChar(50)
+  config      Json     @default("{}")
+  position    Int      @default(0)
+  dashboardId String   @map("dashboard_id") @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+
+  @@index([dashboardId])
+  @@index([tenantId])
+  @@map("widgets")
+}
+
+model DataSource {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(255)
+  type         String   @db.VarChar(50)
+  connectionString String @map("connection_string") @db.Text
+  tenantId     String   @map("tenant_id") @db.Uuid
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  syncHistories SyncHistory[]
+
+  @@index([tenantId])
+  @@map("data_sources")
+}
+
+model SyncHistory {
+  id           String     @id @default(uuid()) @db.Uuid
+  dataSourceId String     @map("data_source_id") @db.Uuid
+  status       SyncStatus @default(PENDING)
+  recordCount  Int        @default(0) @map("record_count")
+  errorMessage String?    @map("error_message") @db.Text
+  tenantId     String     @map("tenant_id") @db.Uuid
+  startedAt    DateTime   @default(now()) @map("started_at")
+  completedAt  DateTime?  @map("completed_at")
+
+  dataSource   DataSource @relation(fields: [dataSourceId], references: [id], onDelete: Cascade)
+
+  @@index([dataSourceId])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("sync_histories")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  action     AuditAction
+  entity     String      @db.VarChar(100)
+  entityId   String      @map("entity_id") @db.Uuid
+  details    Json?
+  userId     String      @map("user_id") @db.Uuid
+  tenantId   String      @map("tenant_id") @db.Uuid
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}

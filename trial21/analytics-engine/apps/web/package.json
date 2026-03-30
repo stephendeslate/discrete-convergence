@@ -1,0 +1,36 @@
+{
+  "name": "@analytics-engine/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@analytics-engine/shared": "workspace:*",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/jest": "^29.5.0",
+    "@types/jest-axe": "^3.5.9",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0",
+    "jest": "^29.7.0",
+    "jest-axe": "^9.0.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.2.0",
+    "typescript": "^5.7.0"
+  }
+}

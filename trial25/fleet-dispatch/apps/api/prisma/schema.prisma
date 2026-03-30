@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN      @map("admin")
+  DISPATCHER @map("dispatcher")
+  DRIVER     @map("driver")
+  VIEWER     @map("viewer")
+
+  @@map("role")
+}
+
+enum VehicleType {
+  TRUCK      @map("truck")
+  VAN        @map("van")
+  CAR        @map("car")
+  MOTORCYCLE @map("motorcycle")
+
+  @@map("vehicle_type")
+}
+
+enum VehicleStatus {
+  ACTIVE      @map("active")
+  INACTIVE    @map("inactive")
+  MAINTENANCE @map("maintenance")
+
+  @@map("vehicle_status")
+}
+
+enum DriverStatus {
+  AVAILABLE @map("available")
+  ON_DUTY   @map("on_duty")
+  OFF_DUTY  @map("off_duty")
+
+  @@map("driver_status")
+}
+
+enum DispatchStatus {
+  PENDING    @map("pending")
+  ASSIGNED   @map("assigned")
+  IN_TRANSIT @map("in_transit")
+  COMPLETED  @map("completed")
+  CANCELLED  @map("cancelled")
+
+  @@map("dispatch_status")
+}
+
+enum MaintenanceType {
+  SCHEDULED  @map("scheduled")
+  EMERGENCY  @map("emergency")
+  INSPECTION @map("inspection")
+
+  @@map("maintenance_type")
+}
+
+enum MaintenanceStatus {
+  SCHEDULED   @map("scheduled")
+  IN_PROGRESS @map("in_progress")
+  COMPLETED   @map("completed")
+  CANCELLED   @map("cancelled")
+
+  @@map("maintenance_status")
+}
+
+enum TripStatus {
+  PLANNED     @map("planned")
+  IN_PROGRESS @map("in_progress")
+  COMPLETED   @map("completed")
+  CANCELLED   @map("cancelled")
+
+  @@map("trip_status")
+}
+
+enum AuditAction {
+  CREATE @map("create")
+  UPDATE @map("update")
+  DELETE @map("delete")
+  LOGIN  @map("login")
+
+  @@map("audit_action")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  role         Role       @default(VIEWER)
+  tenantId     String     @map("tenant_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  auditLogs    AuditLog[]
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Vehicle {
+  id          String        @id @default(uuid())
+  name        String
+  plateNumber String        @map("plate_number")
+  type        VehicleType
+  status      VehicleStatus @default(ACTIVE)
+  capacity    Int
+  tenantId    String        @map("tenant_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  dispatches  Dispatch[]
+  maintenance Maintenance[]
+
+  @@index([tenantId])
+  @@index([plateNumber])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("vehicles")
+}
+
+model Driver {
+  id            String       @id @default(uuid())
+  name          String
+  email         String       @unique
+  phone         String
+  licenseNumber String       @map("license_number")
+  tenantId      String       @map("tenant_id")
+  status        DriverStatus @default(AVAILABLE)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  dispatches    Dispatch[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("drivers")
+}
+
+model Route {
+  id                String     @id @default(uuid())
+  name              String
+  description       String?
+  origin            String
+  destination       String
+  distance          Decimal
+  estimatedDuration Int        @map("estimated_duration")
+  tenantId          String     @map("tenant_id")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+  dispatches        Dispatch[]
+
+  @@index([tenantId])
+  @@map("routes")
+}
+
+model Dispatch {
+  id          String         @id @default(uuid())
+  vehicleId   String         @map("vehicle_id")
+  driverId    String         @map("driver_id")
+  routeId     String         @map("route_id")
+  status      DispatchStatus @default(PENDING)
+  scheduledAt DateTime       @map("scheduled_at")
+  startedAt   DateTime?      @map("started_at")
+  completedAt DateTime?      @map("completed_at")
+  tenantId    String         @map("tenant_id")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  vehicle     Vehicle        @relation(fields: [vehicleId], references: [id])
+  driver      Driver         @relation(fields: [driverId], references: [id])
+  route       Route          @relation(fields: [routeId], references: [id])
+  trips       Trip[]
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([routeId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([vehicleId, status])
+  @@map("dispatches")
+}
+
+model Maintenance {
+  id            String            @id @default(uuid())
+  vehicleId     String            @map("vehicle_id")
+  type          MaintenanceType
+  description   String
+  status        MaintenanceStatus @default(SCHEDULED)
+  scheduledDate DateTime          @map("scheduled_date")
+  completedDate DateTime?         @map("completed_date")
+  cost          Decimal?
+  tenantId      String            @map("tenant_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("maintenance")
+}
+
+model Trip {
+  id            String     @id @default(uuid())
+  dispatchId    String     @map("dispatch_id")
+  startLocation String     @map("start_location")
+  endLocation   String     @map("end_location")
+  startTime     DateTime   @map("start_time")
+  endTime       DateTime?  @map("end_time")
+  distance      Decimal?
+  status        TripStatus @default(PLANNED)
+  tenantId      String     @map("tenant_id")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  dispatch      Dispatch   @relation(fields: [dispatchId], references: [id])
+
+  @@index([tenantId])
+  @@index([dispatchId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@map("trips")
+}
+
+model Zone {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  boundaries  Json
+  tenantId    String   @map("tenant_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("zones")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  action    AuditAction
+  entity    String
+  entityId  String      @map("entity_id")
+  details   Json?
+  userId    String      @map("user_id")
+  tenantId  String      @map("tenant_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([entityId])
+  @@map("audit_logs")
+}
